@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model LotteryItem {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  description       String
+  imageUrl          String
+  ticketPrice       Float
+  receiverPhone     String
+  totalParticipants Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  entries           Entry[]
+}
+
+model Participant {
+  id          String   @id @default(cuid())
+  fullName    String
+  email       String
+  phone       String
+  address     String
+  nationality String
+  createdAt   DateTime @default(now())
+
+  entries     Entry[]
+}
+
+model Entry {
+  id            String   @id @default(cuid())
+  referenceCode String   @unique
+  status        String   @default("PENDING_PAYMENT")
+  proofImageUrl String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id])
+
+  lotteryItemId String
+  lotteryItem   LotteryItem @relation(fields: [lotteryItemId], references: [id])
+}
