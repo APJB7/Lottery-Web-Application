@@ -8,17 +8,21 @@ datasource db {
 }
 
 model LotteryItem {
-  id                String   @id @default(cuid())
-  slug              String   @unique
-  title             String
-  description       String
-  imageUrl          String
-  ticketPrice       Float
-  receiverPhone     String
-  totalParticipants Int      @default(0)
-  createdAt         DateTime @default(now())
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  title              String
+  description        String
+  imageUrl           String
+  ticketPrice        Float
+  receiverPhone      String
+  status             String   @default("OPEN")
+  drawDate           DateTime?
+  closingDate        DateTime?
+  totalParticipants  Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  entries           Entry[]
+  entries            Entry[]
 }
 
 model Participant {

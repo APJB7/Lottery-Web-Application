@@ -7,8 +7,12 @@ CREATE TABLE "LotteryItem" (
     "imageUrl" TEXT NOT NULL,
     "ticketPrice" REAL NOT NULL,
     "receiverPhone" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'OPEN',
+    "drawDate" DATETIME,
+    "closingDate" DATETIME,
     "totalParticipants" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable

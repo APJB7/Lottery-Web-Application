@@ -2,39 +2,44 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import PageShell from "@/components/PageShell";
 
 export default function UploadProofPage() {
   const router = useRouter();
   const params = useParams<{ entryId: string }>();
   const entryId = params.entryId;
 
-  const [proofUrl, setProofUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!file) {
+      alert("Please select a receipt image or PDF.");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const formData = new FormData();
+      formData.append("entryId", entryId);
+      formData.append("file", file);
+
       const res = await fetch("/api/upload-proof", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          entryId,
-          proofImageUrl: proofUrl,
-        }),
+        body: formData,
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Submission failed");
+        alert(data.error || "Upload failed");
         return;
       }
 
-      router.push("/success");
+      router.push(`/success?status=${data.status}`);
     } catch (error) {
       console.error(error);
       alert("Something went wrong");
@@ -43,32 +48,47 @@ export default function UploadProofPage() {
     }
   }
 
+
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-md">
-        <h1 className="text-3xl font-bold">Upload Payment Proof</h1>
-        <p className="mt-2 text-slate-600">
-          For this MVP, paste the image URL of the payment receipt.
-        </p>
+    <PageShell>
+      <div className="mx-auto max-w-3xl overflow-hidden rounded-[32px] bg-white shadow-xl">
+        <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 px-8 py-8 text-white">
+          <p className="text-sm uppercase tracking-wide text-white/80">Step 3 of 3</p>
+          <h1 className="mt-2 text-3xl font-semibold">Upload your payment proof</h1>
+          <p className="mt-2 text-white/85">
+            Upload a JPG, PNG, or PDF receipt for verification.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <input
-            className="w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-blue-500"
-            placeholder="https://example.com/receipt.jpg"
-            value={proofUrl}
-            onChange={(e) => setProofUrl(e.target.value)}
-            required
-          />
+        <form onSubmit={handleSubmit} className="space-y-6 px-8 py-8">
+          <label className="block rounded-3xl border-2 border-dashed border-slate-300 p-8 text-center transition hover:border-cyan-400">
+            <input
+              type="file"
+              accept="image/png,image/jpeg,application/pdf"
+              className="hidden"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+            />
+            <div>
+              <p className="text-lg font-medium text-slate-900">
+                {file ? file.name : "Choose receipt file"}
+              </p>
+              <p className="mt-2 text-sm text-slate-500">
+                Accepted formats: JPG, PNG, PDF
+              </p>
+            </div>
+          </label>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-          >
-            {loading ? "Submitting..." : "Submit Proof"}
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 px-7 py-3 font-medium text-white shadow-md hover:opacity-95 disabled:opacity-60"
+            >
+              {loading ? "Uploading..." : "Submit Proof"}
+            </button>
+          </div>
         </form>
       </div>
-    </main>
+    </PageShell>
   );
 }

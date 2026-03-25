@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import PageShell from "@/components/PageShell";
 
 type Entry = {
   id: string;
   referenceCode: string;
   status: string;
   proofImageUrl: string | null;
+  paymentAmount: number | null;
+  extractedAmount: number | null;
+  extractedReceiver: string | null;
+  extractedReference: string | null;
+  verificationScore: number | null;
+  verificationNotes: string | null;
   createdAt: string;
   participant: {
     fullName: string;
@@ -24,6 +31,7 @@ type Entry = {
 export default function AdminPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("ALL");
 
   async function fetchEntries() {
     setLoading(true);
@@ -67,95 +75,121 @@ export default function AdminPage() {
     fetchEntries();
   }, []);
 
+  const filteredEntries = useMemo(() => {
+    if (filter === "ALL") return entries;
+    return entries.filter((entry) => entry.status === filter);
+  }, [entries, filter]);
+
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="text-4xl font-bold">Admin Review Dashboard</h1>
-        <p className="mt-2 text-slate-600">
-          Review submitted entries and approve or reject proofs of payment.
-        </p>
+    <PageShell>
+      <div className="mx-auto max-w-7xl">
+        <div className="overflow-hidden rounded-[32px] bg-gradient-to-r from-emerald-700 to-cyan-700 px-8 py-8 text-white shadow-2xl">
+          <p className="text-sm uppercase tracking-wide text-white/80">Control Center</p>
+          <div className="mt-2 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h1 className="text-4xl font-semibold tracking-tight">
+                Admin Review Dashboard
+              </h1>
+              <p className="mt-2 text-white/85">
+                Review receipts, verify details, and approve or reject entries.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {[
+                "ALL",
+                "PENDING_PAYMENT",
+                "PENDING_REVIEW",
+                "AUTO_VERIFIED",
+                "APPROVED",
+                "REJECTED",
+              ].map((value) => (
+                <button
+                  key={value}
+                  onClick={() => setFilter(value)}
+                  className={`rounded-full px-4 py-2 text-sm font-medium ${
+                    filter === value
+                      ? "bg-white text-slate-900"
+                      : "bg-white/15 text-white hover:bg-white/25"
+                  }`}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {loading ? (
           <p className="mt-8">Loading entries...</p>
-        ) : entries.length === 0 ? (
-          <p className="mt-8">No entries yet.</p>
+        ) : filteredEntries.length === 0 ? (
+          <p className="mt-8">No entries found.</p>
         ) : (
           <div className="mt-8 grid gap-6">
-            {entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="rounded-2xl bg-white p-6 shadow-md"
-              >
-                <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-                  <div className="space-y-2">
-                    <p>
-                      <span className="font-semibold">Participant:</span>{" "}
-                      {entry.participant.fullName}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Email:</span>{" "}
-                      {entry.participant.email}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Phone:</span>{" "}
-                      {entry.participant.phone}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Nationality:</span>{" "}
-                      {entry.participant.nationality}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Lottery Item:</span>{" "}
-                      {entry.lotteryItem.title}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Amount:</span> Rs{" "}
-                      {entry.lotteryItem.ticketPrice}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Receiver:</span>{" "}
-                      {entry.lotteryItem.receiverPhone}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Reference Code:</span>{" "}
-                      {entry.referenceCode}
-                    </p>
-                    <p>
-                      <span className="font-semibold">Status:</span>{" "}
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-sm">
-                        {entry.status}
-                      </span>
-                    </p>
+            {filteredEntries.map((entry) => (
+              <div key={entry.id} className="rounded-[28px] bg-white p-6 shadow-xl">
+                <div className="grid gap-6 xl:grid-cols-[1fr,280px]">
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    <div className="space-y-2 rounded-3xl bg-slate-50 p-5">
+                      <h3 className="text-lg font-semibold text-slate-900">Participant</h3>
+                      <p><span className="font-medium text-slate-900">Name:</span> {entry.participant.fullName}</p>
+                      <p><span className="font-medium text-slate-900">Email:</span> {entry.participant.email}</p>
+                      <p><span className="font-medium text-slate-900">Phone:</span> {entry.participant.phone}</p>
+                      <p><span className="font-medium text-slate-900">Nationality:</span> {entry.participant.nationality}</p>
+                    </div>
+
+                    <div className="space-y-2 rounded-3xl bg-slate-50 p-5">
+                      <h3 className="text-lg font-semibold text-slate-900">Payment Context</h3>
+                      <p><span className="font-medium text-slate-900">Lottery Item:</span> {entry.lotteryItem.title}</p>
+                      <p><span className="font-medium text-slate-900">Expected Amount:</span> Rs {entry.lotteryItem.ticketPrice}</p>
+                      <p><span className="font-medium text-slate-900">Receiver:</span> {entry.lotteryItem.receiverPhone}</p>
+                      <p><span className="font-medium text-slate-900">Reference:</span> {entry.referenceCode}</p>
+                      <p>
+                        <span className="font-medium text-slate-900">Status:</span>{" "}
+                        <span className="rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 px-3 py-1 text-sm text-white">
+                          {entry.status}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 rounded-3xl bg-slate-50 p-5 lg:col-span-2">
+                      <h3 className="text-lg font-semibold text-slate-900">Verification Summary</h3>
+                      <p><span className="font-medium text-slate-900">Extracted Amount:</span> {entry.extractedAmount ?? "Not detected"}</p>
+                      <p><span className="font-medium text-slate-900">Extracted Receiver:</span> {entry.extractedReceiver ?? "Not detected"}</p>
+                      <p><span className="font-medium text-slate-900">Extracted Reference:</span> {entry.extractedReference ?? "Not detected"}</p>
+                      <p><span className="font-medium text-slate-900">Verification Score:</span> {entry.verificationScore ?? 0}</p>
+                      <p><span className="font-medium text-slate-900">Notes:</span> {entry.verificationNotes ?? "No notes"}</p>
+                    </div>
                   </div>
 
-                  <div className="flex min-w-[240px] flex-col gap-4">
+                  <div className="flex flex-col gap-4 rounded-3xl bg-slate-950 p-5 text-white">
                     {entry.proofImageUrl ? (
                       <a
                         href={entry.proofImageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-xl border border-slate-300 px-4 py-3 text-center font-medium hover:bg-slate-50"
+                        className="rounded-2xl bg-white px-4 py-3 text-center font-medium text-slate-950 hover:bg-slate-100"
                       >
                         View Proof
                       </a>
                     ) : (
-                      <div className="rounded-xl bg-slate-100 px-4 py-3 text-center text-sm text-slate-500">
-                        No proof uploaded yet
+                      <div className="rounded-2xl bg-white/10 px-4 py-3 text-center text-sm text-slate-300">
+                        No proof uploaded
                       </div>
                     )}
 
                     <button
                       onClick={() => updateStatus(entry.id, "APPROVED")}
-                      className="rounded-xl bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700"
+                      className="rounded-2xl bg-emerald-500 px-4 py-3 font-medium text-white hover:bg-emerald-600"
                     >
-                      Approve
+                      Approve Entry
                     </button>
 
                     <button
                       onClick={() => updateStatus(entry.id, "REJECTED")}
-                      className="rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700"
+                      className="rounded-2xl bg-rose-500 px-4 py-3 font-medium text-white hover:bg-rose-600"
                     >
-                      Reject
+                      Reject Entry
                     </button>
                   </div>
                 </div>
@@ -164,6 +198,6 @@ export default function AdminPage() {
           </div>
         )}
       </div>
-    </main>
+    </PageShell>
   );
 }

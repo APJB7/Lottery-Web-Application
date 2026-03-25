@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import PageShell from "@/components/PageShell";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -50,74 +51,69 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <div className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-md">
-        <h1 className="text-3xl font-bold">Register for the Lottery</h1>
-        <p className="mt-2 text-slate-600">
-          Enter your details to continue to the payment step.
-        </p>
+    <PageShell>
+      <div className="mx-auto max-w-3xl overflow-hidden rounded-[32px] bg-white shadow-xl">
+        <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 px-8 py-8 text-white">
+          <p className="text-sm uppercase tracking-wide text-white/80">Step 1 of 3</p>
+          <h1 className="mt-2 text-3xl font-semibold">Registration Details</h1>
+          <p className="mt-2 text-white/85">
+            Enter your details to generate your lottery payment reference.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <form onSubmit={handleSubmit} className="grid gap-4 px-8 py-8 md:grid-cols-2">
           <input
-            className="w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-blue-500"
+            className="rounded-2xl border border-slate-200 p-4 outline-none transition focus:border-emerald-500"
             placeholder="Full name"
             value={form.fullName}
-            onChange={(e) =>
-              setForm({ ...form, fullName: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, fullName: e.target.value })}
             required
           />
 
           <input
-            className="w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-blue-500"
+            className="rounded-2xl border border-slate-200 p-4 outline-none transition focus:border-cyan-500"
             type="email"
             placeholder="Email"
             value={form.email}
-            onChange={(e) =>
-              setForm({ ...form, email: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
             required
           />
 
           <input
-            className="w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-blue-500"
+            className="rounded-2xl border border-slate-200 p-4 outline-none transition focus:border-emerald-500"
             placeholder="Phone number"
             value={form.phone}
-            onChange={(e) =>
-              setForm({ ...form, phone: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
             required
           />
 
           <input
-            className="w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-blue-500"
-            placeholder="Address"
-            value={form.address}
-            onChange={(e) =>
-              setForm({ ...form, address: e.target.value })
-            }
-            required
-          />
-
-          <input
-            className="w-full rounded-xl border border-slate-300 p-3 outline-none focus:border-blue-500"
+            className="rounded-2xl border border-slate-200 p-4 outline-none transition focus:border-cyan-500"
             placeholder="Nationality"
             value={form.nationality}
-            onChange={(e) =>
-              setForm({ ...form, nationality: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, nationality: e.target.value })}
             required
           />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-          >
-            {loading ? "Processing..." : "Continue to Payment"}
-          </button>
+          <textarea
+            className="min-h-[120px] rounded-2xl border border-slate-200 p-4 outline-none transition focus:border-emerald-500 md:col-span-2"
+            placeholder="Address"
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+            required
+          />
+
+          <div className="md:col-span-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 px-7 py-3 font-medium text-white shadow-md hover:opacity-95 disabled:opacity-60"
+            >
+              {loading ? "Creating entry..." : "Continue to Payment"}
+            </button>
+          </div>
         </form>
       </div>
-    </main>
+    </PageShell>
   );
 }

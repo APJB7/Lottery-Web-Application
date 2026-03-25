@@ -1,23 +1,49 @@
 import Link from "next/link";
+import PageShell from "@/components/PageShell";
 
-export default function SuccessPage() {
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status } = await searchParams;
+
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <div className="max-w-xl rounded-2xl bg-white p-8 text-center shadow-md">
-        <h1 className="text-3xl font-bold text-green-600">
-          Proof Submitted Successfully
-        </h1>
-        <p className="mt-4 text-slate-600">
-          Your payment proof is now pending verification by the admin.
-        </p>
+    <PageShell>
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="max-w-2xl rounded-[32px] bg-white p-10 text-center shadow-xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-700">
+            ✓
+          </div>
 
-        <Link
-          href="/"
-          className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
-        >
-          Back to Home
-        </Link>
+          <h1 className="mt-6 text-3xl font-semibold text-slate-950">
+            Submission received
+          </h1>
+
+          <p className="mt-4 text-lg text-slate-600">
+            Your proof was uploaded successfully. Current review status:{" "}
+            <span className="font-semibold text-slate-900">
+              {status || "PENDING_REVIEW"}
+            </span>
+          </p>
+
+          <div className="mt-8 flex justify-center gap-4">
+            <Link
+              href="/"
+              className="rounded-full border border-slate-300 px-6 py-3 font-medium hover:bg-slate-50"
+            >
+              Back Home
+            </Link>
+
+            <Link
+              href="/admin"
+              className="rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 px-6 py-3 font-medium text-white hover:opacity-95"
+            >
+              Open Admin
+            </Link>
+          </div>
+        </div>
       </div>
-    </main>
+    </PageShell>
   );
 }
