@@ -18,6 +18,7 @@ model LotteryItem {
   status             String   @default("OPEN")
   drawDate           DateTime?
   closingDate        DateTime?
+  winnerName         String?
   totalParticipants  Int      @default(0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -33,21 +34,28 @@ model Participant {
   address     String
   nationality String
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   entries     Entry[]
 }
 
 model Entry {
-  id            String   @id @default(cuid())
-  referenceCode String   @unique
-  status        String   @default("PENDING_PAYMENT")
-  proofImageUrl String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                 String      @id @default(cuid())
+  referenceCode      String      @unique
+  status             String      @default("PENDING_PAYMENT")
+  proofImageUrl      String?
+  paymentAmount      Float?
+  extractedAmount    Float?
+  extractedReceiver  String?
+  extractedReference String?
+  verificationScore  Int?
+  verificationNotes  String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
-  participantId String
-  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId      String
+  participant        Participant @relation(fields: [participantId], references: [id])
 
-  lotteryItemId String
-  lotteryItem   LotteryItem @relation(fields: [lotteryItemId], references: [id])
+  lotteryItemId      String
+  lotteryItem        LotteryItem @relation(fields: [lotteryItemId], references: [id])
 }

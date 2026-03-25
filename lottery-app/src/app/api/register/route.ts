@@ -23,7 +23,10 @@ export async function POST(req: Request) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid form data", details: parsed.error.flatten() },
+        {
+          error: "Invalid form data",
+          details: parsed.error.flatten(),
+        },
         { status: 400 }
       );
     }
@@ -56,6 +59,7 @@ export async function POST(req: Request) {
         referenceCode: generateReferenceCode(),
         participantId: participant.id,
         lotteryItemId: lotteryItem.id,
+        paymentAmount: lotteryItem.ticketPrice,
       },
     });
 
@@ -74,7 +78,8 @@ export async function POST(req: Request) {
       referenceCode: entry.referenceCode,
     });
   } catch (error) {
-    console.error(error);
+    console.error("REGISTER_ROUTE_ERROR:", error);
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -9,35 +9,23 @@ export default function HomePage() {
         <div className="grid gap-10 px-8 py-14 md:grid-cols-2 md:px-14">
           <div className="flex flex-col justify-center">
             <span className="w-fit rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white/90">
-              Lottery Registration Platform
+              Professional Lottery Registration Platform
             </span>
-
             <h1 className="mt-6 text-5xl font-semibold leading-tight tracking-tight">
               Register participants, guide payments, and review entries with confidence.
             </h1>
-
             <p className="mt-6 max-w-xl text-lg text-white/85">
-              A premium lottery workflow for registration, QR payment guidance,
-              proof upload, and admin verification.
+              A premium lottery workflow for registration, QR payment guidance, proof upload, and admin verification.
             </p>
-
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/lottery/iphone-15-pro-max"
-                className="rounded-full bg-white px-6 py-3 font-medium text-slate-900 shadow-lg hover:bg-slate-100"
-              >
+              <Link href="/lottery/iphone-15-pro-max" className="rounded-full bg-white px-6 py-3 font-medium text-slate-900 shadow-lg hover:bg-slate-100">
                 View Live Lottery
               </Link>
-
-              <Link
-                href="/admin"
-                className="rounded-full border border-white/30 px-6 py-3 font-medium text-white hover:bg-white/10"
-              >
+              <Link href="/admin" className="rounded-full border border-white/30 px-6 py-3 font-medium text-white hover:bg-white/10">
                 Open Admin Dashboard
               </Link>
             </div>
           </div>
-
           <div className="grid gap-4 md:grid-cols-2">
             <StatCard label="Step 1" value="Register" />
             <StatCard label="Step 2" value="Pay" />
