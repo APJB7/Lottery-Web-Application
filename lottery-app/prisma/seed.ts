@@ -17,7 +17,7 @@ async function main() {
         imageUrl:
           "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1400&auto=format&fit=crop",
         ticketPrice: 500,
-        receiverPhone: "1234",
+        receiverPhone: "58165253",
         status: "OPEN",
         drawDate: new Date("2026-04-30T18:00:00.000Z"),
         closingDate: new Date("2026-04-29T18:00:00.000Z"),

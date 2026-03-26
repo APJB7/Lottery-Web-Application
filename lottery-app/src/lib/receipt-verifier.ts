@@ -6,39 +6,40 @@ export type ReceiptVerificationResult = {
   verificationNotes: string;
 };
 
+function normalize(text: string) {
+  return text.replace(/\s+/g, " ").trim();
+}
+
 function extractAmount(text: string): number | null {
   const cleaned = text.replace(/,/g, "");
-  const amountMatch =
+  const match =
     cleaned.match(/(?:rs|mur|amount|paid)\s*[:\-]?\s*(\d+(?:\.\d{1,2})?)/i) ||
     cleaned.match(/\b(\d{2,6}(?:\.\d{1,2})?)\b/);
 
-  if (!amountMatch) return null;
-  return Number(amountMatch[1]);
+  return match ? Number(match[1]) : null;
 }
 
 function extractReceiver(text: string, expectedReceiver: string): string | null {
-  const normalized = text.replace(/\s+/g, "");
-  if (normalized.includes(expectedReceiver.replace(/\s+/g, ""))) {
-    return expectedReceiver;
-  }
+  const compact = text.replace(/\s+/g, "");
+  const expectedCompact = expectedReceiver.replace(/\s+/g, "");
 
-  const phoneMatch = text.match(/\b\d{4,15}\b/g);
-  if (!phoneMatch) return null;
+  if (compact.includes(expectedCompact)) return expectedReceiver;
 
-  const found = phoneMatch.find((p) => p.includes(expectedReceiver));
+  const candidates = text.match(/\b\d{4,15}\b/g);
+  if (!candidates) return null;
+
+  const found = candidates.find((p) => p.includes(expectedReceiver));
   return found || null;
 }
 
 function extractReference(text: string, expectedReference: string): string | null {
-  const normalizedText = text.replace(/\s+/g, "").toLowerCase();
-  const normalizedRef = expectedReference.replace(/\s+/g, "").toLowerCase();
+  const compactText = text.replace(/\s+/g, "").toLowerCase();
+  const compactExpected = expectedReference.replace(/\s+/g, "").toLowerCase();
 
-  if (normalizedText.includes(normalizedRef)) {
-    return expectedReference;
-  }
+  if (compactText.includes(compactExpected)) return expectedReference;
 
-  const refMatch = text.match(/LOT-\d{4}-\d+/i);
-  return refMatch ? refMatch[0] : null;
+  const match = text.match(/LOT-\d{4}-\d+/i);
+  return match ? match[0] : null;
 }
 
 export function verifyReceiptAgainstExpected(input: {
@@ -47,7 +48,7 @@ export function verifyReceiptAgainstExpected(input: {
   expectedReceiverPhone: string;
   expectedReferenceCode: string;
 }): ReceiptVerificationResult {
-  const text = input.extractedText;
+  const text = normalize(input.extractedText);
 
   const extractedAmount = extractAmount(text);
   const extractedReceiver = extractReceiver(text, input.expectedReceiverPhone);

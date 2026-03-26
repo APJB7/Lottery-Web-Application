@@ -4,6 +4,7 @@ import path from "path";
 import { prisma } from "@/lib/prisma";
 import { verifyReceiptAgainstExpected } from "@/lib/receipt-verifier";
 import { extractTextFromImage } from "@/lib/ocr";
+import { extractTextFromPdf } from "@/lib/pdf-text";
 
 export async function POST(req: Request) {
   try {
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
 
     let extractedText = "";
     let verificationScore = 0;
-    let verificationNotes = "OCR not executed.";
+    let verificationNotes = "Verification not executed.";
     let extractedAmount: number | null = null;
     let extractedReceiver: string | null = null;
     let extractedReference: string | null = null;
@@ -59,7 +60,11 @@ export async function POST(req: Request) {
 
     if (file.type === "image/png" || file.type === "image/jpeg") {
       extractedText = await extractTextFromImage(filePath);
+    } else if (file.type === "application/pdf") {
+      extractedText = await extractTextFromPdf(filePath);
+    }
 
+    if (extractedText && extractedText.trim().length > 0) {
       const verification = verifyReceiptAgainstExpected({
         extractedText,
         expectedAmount: entry.lotteryItem.ticketPrice,
@@ -73,14 +78,9 @@ export async function POST(req: Request) {
       verificationScore = verification.verificationScore;
       verificationNotes = verification.verificationNotes;
 
-      if (verificationScore >= 90) {
-        derivedStatus = "AUTO_VERIFIED";
-      } else {
-        derivedStatus = "PENDING_REVIEW";
-      }
+      derivedStatus = verificationScore >= 90 ? "AUTO_VERIFIED" : "PENDING_REVIEW";
     } else {
-      verificationNotes =
-        "PDF uploaded. OCR not run in this version. Manual review required.";
+      verificationNotes = "No readable text was extracted. Manual review required.";
     }
 
     const updated = await prisma.entry.update({
