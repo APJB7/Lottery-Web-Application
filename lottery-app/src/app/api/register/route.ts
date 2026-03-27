@@ -44,31 +44,43 @@ export async function POST(req: Request) {
       );
     }
 
-    const participant = await prisma.participant.create({
-      data: {
-        fullName,
-        email,
-        phone,
-        address,
-        nationality,
+    if (lotteryItem.status === "CLOSED" || lotteryItem.winnerName) {
+      return NextResponse.json(
+        { error: "This lottery is closed and no longer accepts entries." },
+        { status: 400 }
+      );
+    }
+
+    const existingEntry = await prisma.entry.findFirst({
+      where: {
+        lotteryItemId: lotteryItem.id,
+        applicantEmail: email,
+        status: {
+          in: ["PENDING_PAYMENT", "PENDING_REVIEW", "AUTO_VERIFIED", "APPROVED"],
+        },
       },
     });
+
+    if (existingEntry) {
+      return NextResponse.json(
+        {
+          error:
+            "An entry already exists for this email address in the current lottery.",
+        },
+        { status: 400 }
+      );
+    }
 
     const entry = await prisma.entry.create({
       data: {
         referenceCode: generateReferenceCode(),
-        participantId: participant.id,
         lotteryItemId: lotteryItem.id,
         paymentAmount: lotteryItem.ticketPrice,
-      },
-    });
-
-    await prisma.lotteryItem.update({
-      where: { id: lotteryItem.id },
-      data: {
-        totalParticipants: {
-          increment: 1,
-        },
+        applicantFullName: fullName,
+        applicantEmail: email,
+        applicantPhone: phone,
+        applicantAddress: address,
+        applicantNationality: nationality,
       },
     });
 

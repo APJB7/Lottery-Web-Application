@@ -12,8 +12,7 @@ export async function sendEmail(params: {
   html: string;
 }) {
   if (!host || !user || !pass) {
-    console.warn("SMTP env vars missing. Email skipped.");
-    return { skipped: true };
+    throw new Error("SMTP configuration is missing.");
   }
 
   const transporter = nodemailer.createTransport({
@@ -33,12 +32,7 @@ export async function sendEmail(params: {
     html: params.html,
   });
 
-  const previewUrl = nodemailer.getTestMessageUrl(info);
-  if (previewUrl) {
-    console.log("EMAIL PREVIEW URL:", previewUrl);
-  } else {
-    console.log("Email sent, but no Ethereal preview URL was generated.");
-  }
+  console.log("REAL EMAIL SENT:", info.messageId);
 
   return info;
 }
@@ -49,18 +43,29 @@ export function approvedEmailTemplate(data: {
   referenceCode: string;
 }) {
   return `
-    <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #0f172a;">
-      <h2>Payment Approved</h2>
-      <p>Hello ${data.fullName},</p>
-      <p>Your payment proof has been approved by the administrator.</p>
+    <div style="font-family: Arial, sans-serif; background:#f8fafc; padding:30px;">
+      <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:24px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+        
+        <h2 style="color:#0f172a;"> Payment Confirmed</h2>
 
-      <div style="padding: 16px; background: #f0fdfa; border-radius: 12px; border: 1px solid #99f6e4;">
-        <p><strong>Lottery Item:</strong> ${data.itemTitle}</p>
-        <p><strong>Reference Code:</strong> ${data.referenceCode}</p>
-        <p><strong>Status:</strong> Approved</p>
+        <p>Hello <strong>${data.fullName}</strong>,</p>
+
+        <p>Your payment has been successfully verified. Your entry is now confirmed.</p>
+
+        <div style="margin-top:20px; padding:16px; background:#ecfeff; border-radius:10px;">
+          <p><strong>Lottery:</strong> ${data.itemTitle}</p>
+          <p><strong>Reference:</strong> ${data.referenceCode}</p>
+          <p><strong>Status:</strong> Confirmed</p>
+        </div>
+
+        <p style="margin-top:20px;">Good luck!</p>
+
+        <hr style="margin:20px 0;" />
+
+        <p style="font-size:12px; color:#64748b;">
+          This is an automated message. Please do not reply.
+        </p>
       </div>
-
-      <p>Your entry is now confirmed.</p>
     </div>
   `;
 }
@@ -72,9 +77,11 @@ export function rejectedEmailTemplate(data: {
 }) {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #0f172a;">
-      <h2>Payment Review Update</h2>
+      <h2 style="color:#0f172a;">Lottery Entry Update</h2>
+
       <p>Hello ${data.fullName},</p>
-      <p>Your payment proof could not be approved.</p>
+
+      <p>Unfortunately, your submitted payment proof could not be approved.</p>
 
       <div style="padding: 16px; background: #fef2f2; border-radius: 12px; border: 1px solid #fecaca;">
         <p><strong>Lottery Item:</strong> ${data.itemTitle}</p>
@@ -82,7 +89,7 @@ export function rejectedEmailTemplate(data: {
         <p><strong>Status:</strong> Rejected</p>
       </div>
 
-      <p>Please contact support or submit a clearer receipt.</p>
+      <p>Please contact support or submit a clearer proof if allowed.</p>
     </div>
   `;
 }

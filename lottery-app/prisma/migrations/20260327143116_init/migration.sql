@@ -11,6 +11,7 @@ CREATE TABLE "LotteryItem" (
     "drawDate" DATETIME,
     "closingDate" DATETIME,
     "winnerName" TEXT,
+    "winnerEntryId" TEXT,
     "totalParticipants" INTEGER NOT NULL DEFAULT 0,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
@@ -40,11 +41,15 @@ CREATE TABLE "Entry" (
     "extractedReference" TEXT,
     "verificationScore" INTEGER,
     "verificationNotes" TEXT,
+    "applicantFullName" TEXT NOT NULL,
+    "applicantEmail" TEXT NOT NULL,
+    "applicantPhone" TEXT NOT NULL,
+    "applicantAddress" TEXT NOT NULL,
+    "applicantNationality" TEXT NOT NULL,
+    "approvedParticipantId" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    "participantId" TEXT NOT NULL,
     "lotteryItemId" TEXT NOT NULL,
-    CONSTRAINT "Entry_participantId_fkey" FOREIGN KEY ("participantId") REFERENCES "Participant" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Entry_lotteryItemId_fkey" FOREIGN KEY ("lotteryItemId") REFERENCES "LotteryItem" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 

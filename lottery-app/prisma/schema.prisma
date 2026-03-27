@@ -19,6 +19,7 @@ model LotteryItem {
   drawDate           DateTime?
   closingDate        DateTime?
   winnerName         String?
+  winnerEntryId      String?
   totalParticipants  Int      @default(0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -35,14 +36,12 @@ model Participant {
   nationality String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  entries     Entry[]
 }
 
 model Entry {
-  id                 String      @id @default(cuid())
-  referenceCode      String      @unique
-  status             String      @default("PENDING_PAYMENT")
+  id                 String   @id @default(cuid())
+  referenceCode      String   @unique
+  status             String   @default("PENDING_PAYMENT")
   proofImageUrl      String?
   paymentAmount      Float?
   extractedAmount    Float?
@@ -50,11 +49,17 @@ model Entry {
   extractedReference String?
   verificationScore  Int?
   verificationNotes  String?
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
 
-  participantId      String
-  participant        Participant @relation(fields: [participantId], references: [id])
+  applicantFullName    String
+  applicantEmail       String
+  applicantPhone       String
+  applicantAddress     String
+  applicantNationality String
+
+  approvedParticipantId String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   lotteryItemId      String
   lotteryItem        LotteryItem @relation(fields: [lotteryItemId], references: [id])

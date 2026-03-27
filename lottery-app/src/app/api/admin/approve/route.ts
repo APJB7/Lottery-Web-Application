@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { approvedEmailTemplate, sendEmail } from "@/lib/email";
+import {
+  approvedEmailTemplate,
+  rejectedEmailTemplate,
+  sendEmail,
+} from "@/lib/email";
 import { cookies } from "next/headers";
 
 const approveSchema = z.object({
@@ -36,7 +40,6 @@ export async function POST(req: Request) {
     const entry = await prisma.entry.findUnique({
       where: { id: entryId },
       include: {
-        participant: true,
         lotteryItem: true,
       },
     });
@@ -52,26 +55,84 @@ export async function POST(req: Request) {
       );
     }
 
+    if (status === "APPROVED") {
+      const existingApproved = await prisma.entry.findFirst({
+        where: {
+          referenceCode: entry.referenceCode,
+          status: "APPROVED",
+        },
+      });
+
+      if (existingApproved) {
+        return NextResponse.json(
+          { error: "This reference has already been approved." },
+          { status: 400 }
+        );
+      }
+    }
+
+    let approvedParticipantId: string | null = null;
+
+    if (status === "APPROVED") {
+      const participant = await prisma.participant.create({
+        data: {
+          fullName: entry.applicantFullName,
+          email: entry.applicantEmail,
+          phone: entry.applicantPhone,
+          address: entry.applicantAddress,
+          nationality: entry.applicantNationality,
+        },
+      });
+
+      approvedParticipantId = participant.id;
+
+      await prisma.lotteryItem.update({
+        where: { id: entry.lotteryItemId },
+        data: {
+          totalParticipants: {
+            increment: 1,
+          },
+        },
+      });
+    }
+
     const updated = await prisma.entry.update({
       where: { id: entryId },
       data: {
         status,
+        approvedParticipantId,
       },
     });
 
     if (status === "APPROVED") {
       try {
         await sendEmail({
-          to: entry.participant.email,
-          subject: "Your lottery payment has been approved",
+          to: entry.applicantEmail,
+          subject: "Your lottery entry has been confirmed",
           html: approvedEmailTemplate({
-            fullName: entry.participant.fullName,
+            fullName: entry.applicantFullName,
             itemTitle: entry.lotteryItem.title,
             referenceCode: entry.referenceCode,
           }),
         });
       } catch (emailError) {
         console.error("APPROVAL_EMAIL_ERROR:", emailError);
+      }
+    }
+
+    if (status === "REJECTED") {
+      try {
+        await sendEmail({
+          to: entry.applicantEmail,
+          subject: "Your lottery entry update",
+          html: rejectedEmailTemplate({
+            fullName: entry.applicantFullName,
+            itemTitle: entry.lotteryItem.title,
+            referenceCode: entry.referenceCode,
+          }),
+        });
+      } catch (emailError) {
+        console.error("REJECTION_EMAIL_ERROR:", emailError);
       }
     }
 

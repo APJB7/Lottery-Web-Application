@@ -16,7 +16,6 @@ export default async function PaymentPage({
   const entry = await prisma.entry.findUnique({
     where: { id: entryId },
     include: {
-      participant: true,
       lotteryItem: true,
     },
   });
@@ -35,9 +34,11 @@ export default async function PaymentPage({
             <p className="text-sm uppercase tracking-wide text-cyan-600">
               Step 2 of 3
             </p>
+
             <h1 className="mt-2 text-3xl font-semibold text-slate-950">
               Complete your payment
             </h1>
+
             <p className="mt-3 text-slate-600">
               Please make the payment and use the exact reference number below in
               the payment description or note.
@@ -47,12 +48,15 @@ export default async function PaymentPage({
               <p className="text-sm font-medium uppercase tracking-wide text-cyan-700">
                 Important payment instruction
               </p>
+
               <p className="mt-3 text-lg text-slate-800">
                 Your reference number is:
               </p>
+
               <p className="mt-2 rounded-2xl bg-white px-4 py-3 text-2xl font-bold tracking-wide text-cyan-700 shadow-sm">
                 {referenceCode}
               </p>
+
               <p className="mt-4 text-sm text-slate-700">
                 Please copy this reference number and include it in the{" "}
                 <span className="font-semibold">payment description / note</span>{" "}
@@ -62,17 +66,20 @@ export default async function PaymentPage({
 
             <div className="mt-8 space-y-4 rounded-3xl bg-slate-50 p-6">
               <p>
-                <span className="font-semibold text-slate-900">Participant:</span>{" "}
-                {entry.participant.fullName}
+                <span className="font-semibold text-slate-900">Applicant:</span>{" "}
+                {entry.applicantFullName}
               </p>
+
               <p>
                 <span className="font-semibold text-slate-900">Lottery Item:</span>{" "}
                 {entry.lotteryItem.title}
               </p>
+
               <p>
                 <span className="font-semibold text-slate-900">Amount:</span> Rs{" "}
                 {entry.lotteryItem.ticketPrice}
               </p>
+
               <p>
                 <span className="font-semibold text-slate-900">Receiver Number:</span>{" "}
                 {entry.lotteryItem.receiverPhone}
