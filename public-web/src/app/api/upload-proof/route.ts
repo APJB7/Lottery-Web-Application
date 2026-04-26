@@ -5,8 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { verifyReceiptAgainstExpected } from "@/lib/receipt-verifier";
 import { extractTextFromImage } from "@/lib/ocr";
 import { extractTextFromPdf } from "@/lib/pdf-text";
+import { uploadProofToCloudinary } from "@/lib/cloudinary";
 
 export async function POST(req: Request) {
+  let filePath: string | null = null;
+
   try {
     const formData = await req.formData();
     const entryId = formData.get("entryId");
@@ -21,8 +24,12 @@ export async function POST(req: Request) {
     }
 
     const allowed = ["image/png", "image/jpeg", "application/pdf"];
+
     if (!allowed.includes(file.type)) {
-      return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Unsupported file type" },
+        { status: 400 }
+      );
     }
 
     const entry = await prisma.entry.findUnique({
@@ -44,11 +51,9 @@ export async function POST(req: Request) {
 
     const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
     const safeFilename = `${Date.now()}-${entry.referenceCode}.${ext}`;
-    const filePath = path.join(uploadsDir, safeFilename);
+    filePath = path.join(uploadsDir, safeFilename);
 
     await fs.writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/${safeFilename}`;
 
     let extractedText = "";
     let verificationScore = 0;
@@ -78,10 +83,31 @@ export async function POST(req: Request) {
       verificationScore = verification.verificationScore;
       verificationNotes = verification.verificationNotes;
 
-      derivedStatus = verificationScore >= 90 ? "AUTO_VERIFIED" : "PENDING_REVIEW";
+      derivedStatus =
+        verificationScore >= 90 ? "AUTO_VERIFIED" : "PENDING_REVIEW";
     } else {
-      verificationNotes = "No readable text was extracted. Manual review required.";
+      verificationNotes =
+        "No readable text was extracted. Manual review required.";
     }
+
+    if (verificationScore === 0) {
+      await fs.unlink(filePath).catch(() => {});
+
+      return NextResponse.json(
+        {
+          error:
+            "This proof could not be verified. Please upload a valid payment receipt showing the amount, receiver number, or reference code.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const publicUrl = await uploadProofToCloudinary(
+      filePath,
+      entry.referenceCode
+    );
+
+    await fs.unlink(filePath).catch(() => {});
 
     const updated = await prisma.entry.update({
       where: { id: entryId },
@@ -104,6 +130,11 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("UPLOAD_PROOF_ERROR:", error);
+
+    if (filePath) {
+      await fs.unlink(filePath).catch(() => {});
+    }
+
     return NextResponse.json(
       { error: "Upload failed on server" },
       { status: 500 }
