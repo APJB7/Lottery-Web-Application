@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model LotteryItem {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  title              String
+  description        String
+  imageUrl           String
+  ticketPrice        Float
+  receiverPhone      String
+  status             String   @default("OPEN")
+  drawDate           DateTime?
+  closingDate        DateTime?
+  winnerName         String?
+  winnerEntryId      String?
+  totalParticipants  Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  entries            Entry[]
+}
+
+model Participant {
+  id          String   @id @default(cuid())
+  fullName    String
+  email       String
+  phone       String
+  address     String
+  nationality String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Entry {
+  id                 String   @id @default(cuid())
+  referenceCode      String   @unique
+  status             String   @default("PENDING_PAYMENT")
+  proofImageUrl      String?
+  paymentAmount      Float?
+  extractedAmount    Float?
+  extractedReceiver  String?
+  extractedReference String?
+  verificationScore  Int?
+  verificationNotes  String?
+
+  applicantFullName    String
+  applicantEmail       String
+  applicantPhone       String
+  applicantAddress     String
+  applicantNationality String
+
+  approvedParticipantId String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  lotteryItemId      String
+  lotteryItem        LotteryItem @relation(fields: [lotteryItemId], references: [id])
+}
