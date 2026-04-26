@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "LuckyFlow",
+  title: "The Jackpot",
   description: "Lottery registration and verification platform",
 };
 
