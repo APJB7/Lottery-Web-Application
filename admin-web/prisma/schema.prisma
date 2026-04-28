@@ -57,6 +57,9 @@ model Entry {
   applicantAddress     String
   applicantNationality String
 
+  consentAccepted      Boolean  @default(false)
+  consentAcceptedAt    DateTime?
+
   approvedParticipantId String?
 
   createdAt          DateTime @default(now())

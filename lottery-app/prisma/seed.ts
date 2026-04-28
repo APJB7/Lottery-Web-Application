@@ -4,16 +4,16 @@ const prisma = new PrismaClient();
 
 async function main() {
   const existing = await prisma.lotteryItem.findUnique({
-    where: { slug: "iphone-15-pro-max" },
+    where: { slug: "ps4-bundle" },
   });
 
   if (!existing) {
     await prisma.lotteryItem.create({
       data: {
-        slug: "iphone-15-pro-max",
-        title: "iPhone 15 Pro Max",
+        slug: "ps4-bundle",
+        title: "PS4 Bundle",
         description:
-          "Join this premium lottery draw for a chance to win a brand new iPhone 15 Pro Max. Complete registration, pay the participation fee, upload your receipt, and await verification.",
+          "Win a PlayStation 4 Pro in excellent condition (9/10), complete with 2 wireless controllers. Enjoy high-performance gaming and endless entertainment.",
         imageUrl:
           "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1400&auto=format&fit=crop",
         ticketPrice: 500,

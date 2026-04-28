@@ -278,8 +278,8 @@ export default function AdminDashboardClient() {
                   {lotteryInfo.winnerEntryId
                     ? "Winner Already Drawn"
                     : drawingWinner
-                    ? "Drawing Winner..."
-                    : "Draw Winner"}
+                      ? "Drawing Winner..."
+                      : "Draw Winner"}
                 </button>
 
                 <button
@@ -305,11 +305,10 @@ export default function AdminDashboardClient() {
               <button
                 key={value}
                 onClick={() => setFilter(value)}
-                className={`rounded-full px-4 py-2 text-sm font-medium ${
-                  filter === value
-                    ? "bg-white text-slate-900"
-                    : "bg-white/15 text-white hover:bg-white/25"
-                }`}
+                className={`rounded-full px-4 py-2 text-sm font-medium ${filter === value
+                  ? "bg-white text-slate-900"
+                  : "bg-white/15 text-white hover:bg-white/25"
+                  }`}
               >
                 {prettifyStatus(value)}
               </button>
@@ -421,13 +420,12 @@ export default function AdminDashboardClient() {
                         View Proof
                       </a>
                     ) : (
-                      <div className="rounded-2xl bg-white/10 px-4 py-3 text-center text-sm text-slate-300">
-                        No proof uploaded
+                      <div className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-medium text-amber-800">
+                        No proof uploaded yet
                       </div>
                     )}
 
-                    {entry.status === "PENDING_REVIEW" ||
-                    entry.status === "AUTO_VERIFIED" ? (
+                    {entry.status === "PENDING_REVIEW" || entry.status === "AUTO_VERIFIED" ? (
                       <>
                         <button
                           onClick={() => updateStatus(entry.id, "APPROVED")}
@@ -443,6 +441,10 @@ export default function AdminDashboardClient() {
                           Reject Entry
                         </button>
                       </>
+                    ) : entry.status === "PENDING_PAYMENT" ? (
+                      <div className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-medium text-amber-800">
+                        Awaiting proof upload. This applicant has not submitted payment proof yet.
+                      </div>
                     ) : (
                       <div className="rounded-2xl bg-white/10 px-4 py-3 text-center text-sm text-slate-300">
                         This entry has already been finalised.

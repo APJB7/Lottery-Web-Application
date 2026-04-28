@@ -35,11 +35,13 @@ export default async function LotteryPage({
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[1.25fr,0.95fr]">
           <div className="overflow-hidden rounded-[32px] bg-white shadow-xl">
-            <img
-              src={item.imageUrl}
-              alt={item.title}
-              className="h-[460px] w-full object-cover"
-            />
+            <div className="flex h-[460px] w-full items-center justify-center bg-gradient-to-br from-slate-50 to-cyan-50 p-8">
+              <img
+                src={item.imageUrl}
+                alt={item.title}
+                className="max-h-full max-w-full object-contain drop-shadow-2xl"
+              />
+            </div>
 
             <div className="p-8">
               <div className="flex flex-wrap items-center gap-3">

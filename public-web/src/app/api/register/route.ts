@@ -9,6 +9,7 @@ const registerSchema = z.object({
   phone: z.string().min(4),
   address: z.string().min(3),
   nationality: z.string().min(2),
+  consentAccepted: z.literal(true),
 });
 
 function generateReferenceCode() {
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { slug, fullName, email, phone, address, nationality } = parsed.data;
+    const { slug, fullName, email, phone, address, nationality} = parsed.data;
 
     const lotteryItem = await prisma.lotteryItem.findUnique({
       where: { slug },

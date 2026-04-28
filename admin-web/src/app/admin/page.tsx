@@ -1,11 +1,12 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
 import AdminDashboardClient from "./AdminDashboardClient";
 
 export default async function AdminPage() {
-  const isAuthenticated = await isAdminAuthenticated();
+  const cookieStore = await cookies();
+  const adminCookie = cookieStore.get("luckyflow_admin");
 
-  if (!isAuthenticated) {
+  if (!adminCookie || adminCookie.value !== "authenticated") {
     redirect("/admin/login");
   }
 

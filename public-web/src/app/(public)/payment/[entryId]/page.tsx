@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageShell from "@/components/PageShell";
 
+const BANK_ACCOUNT_NUMBER = "000441860540";
+const JUICE_PHONE_NUMBER = "59494264";
+
 export default async function PaymentPage({
   params,
   searchParams,
@@ -24,8 +27,6 @@ export default async function PaymentPage({
 
   const referenceCode = ref || entry.referenceCode;
 
-  const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=Pay%20Rs%20${entry.lotteryItem.ticketPrice}%20to%20${entry.lotteryItem.receiverPhone}%20Ref%20${referenceCode}`;
-
   return (
     <PageShell>
       <div className="mx-auto max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-xl">
@@ -40,8 +41,8 @@ export default async function PaymentPage({
             </h1>
 
             <p className="mt-3 text-slate-600">
-              Please make the payment and use the exact reference number below in
-              the payment description or note.
+              Please pay using either Juice or bank transfer. Include your
+              reference number in the payment description.
             </p>
 
             <div className="mt-6 rounded-3xl border border-cyan-200 bg-cyan-50 p-6">
@@ -71,7 +72,9 @@ export default async function PaymentPage({
               </p>
 
               <p>
-                <span className="font-semibold text-slate-900">Lottery Item:</span>{" "}
+                <span className="font-semibold text-slate-900">
+                  Lottery Item:
+                </span>{" "}
                 {entry.lotteryItem.title}
               </p>
 
@@ -81,14 +84,30 @@ export default async function PaymentPage({
               </p>
 
               <p>
-                <span className="font-semibold text-slate-900">Receiver Number:</span>{" "}
-                {entry.lotteryItem.receiverPhone}
+                <span className="font-semibold text-slate-900">
+                  Bank Account Number:
+                </span>{" "}
+                {BANK_ACCOUNT_NUMBER}
+              </p>
+
+              <p>
+                <span className="font-semibold text-slate-900">
+                  Juice Phone Number:
+                </span>{" "}
+                {JUICE_PHONE_NUMBER}
+              </p>
+
+              <p>
+                <span className="font-semibold text-slate-900">
+                  Payment Reference:
+                </span>{" "}
+                {referenceCode}
               </p>
             </div>
 
             <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
-              After payment, upload your proof of payment so the admin can verify
-              it.
+              After completing the payment, upload your proof of payment so the
+              admin can verify it.
             </div>
 
             <Link
@@ -100,12 +119,49 @@ export default async function PaymentPage({
           </div>
 
           <div className="flex items-center justify-center bg-gradient-to-br from-emerald-600 to-cyan-700 p-10">
-            <div className="rounded-[28px] bg-white p-6 shadow-2xl">
-              <img
-                src={qrImage}
-                alt="Payment QR"
-                className="h-[280px] w-[280px] rounded-2xl"
-              />
+            <div className="w-full rounded-[28px] bg-white p-8 shadow-2xl">
+              <p className="text-sm uppercase tracking-wide text-cyan-600">
+                Payment Options
+              </p>
+
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                Choose your payment method
+              </h2>
+
+              <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                <p className="text-sm font-medium text-slate-500">
+                  Bank Account Number
+                </p>
+                <p className="mt-2 break-all text-3xl font-black tracking-wide text-slate-950">
+                  {BANK_ACCOUNT_NUMBER}
+                </p>
+              </div>
+
+              <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
+                <p className="text-sm font-medium text-emerald-700">
+                  Juice Phone Number
+                </p>
+                <p className="mt-2 break-all text-3xl font-black tracking-wide text-emerald-700">
+                  {JUICE_PHONE_NUMBER}
+                </p>
+              </div>
+
+              <div className="mt-5 rounded-3xl border border-cyan-200 bg-cyan-50 p-6">
+                <p className="text-sm font-medium text-cyan-700">
+                  Reference to include
+                </p>
+                <p className="mt-2 break-all text-2xl font-bold tracking-wide text-cyan-700">
+                  {referenceCode}
+                </p>
+              </div>
+
+              <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+                Transfer exactly{" "}
+                <span className="font-bold">
+                  Rs {entry.lotteryItem.ticketPrice}
+                </span>{" "}
+                using either Juice or bank transfer, then upload your receipt.
+              </div>
             </div>
           </div>
         </div>

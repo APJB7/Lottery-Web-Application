@@ -18,7 +18,7 @@ export default function HomePage() {
               A premium lottery workflow for registration, QR payment guidance, proof upload, and admin verification.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/lottery/iphone-15-pro-max" className="rounded-full bg-white px-6 py-3 font-medium text-slate-900 shadow-lg hover:bg-slate-100">
+              <Link href="/lottery/ps4-bundle" className="rounded-full bg-white px-6 py-3 font-medium text-slate-900 shadow-lg hover:bg-slate-100">
                 View Live Lottery
               </Link>
               <Link href="/admin" className="rounded-full border border-white/30 px-6 py-3 font-medium text-white hover:bg-white/10">

@@ -55,7 +55,7 @@ export default async function SuccessPage({
 
           <div className="mt-8 flex justify-center gap-4">
             <Link
-              href="/lottery/iphone-15-pro-max"
+              href="/lottery/ps4-bundle"
               className="rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 px-6 py-3 font-medium text-white hover:opacity-95"
             >
               Back to Lottery
