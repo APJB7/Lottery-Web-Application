@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     if (!allowed.includes(file.type)) {
       return NextResponse.json(
-        { error: "Unsupported file type" },
+        { error: "Unsupported file type. Please upload JPG, PNG, or PDF only." },
         { status: 400 }
       );
     }
@@ -46,10 +46,16 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const uploadsDir = "/tmp";
     await fs.mkdir(uploadsDir, { recursive: true });
 
-    const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
+    const ext =
+      file.name.includes(".") && file.name.split(".").pop()
+        ? file.name.split(".").pop()
+        : file.type === "application/pdf"
+        ? "pdf"
+        : "jpg";
+
     const safeFilename = `${Date.now()}-${entry.referenceCode}.${ext}`;
     filePath = path.join(uploadsDir, safeFilename);
 
@@ -65,7 +71,9 @@ export async function POST(req: Request) {
 
     if (file.type === "image/png" || file.type === "image/jpeg") {
       extractedText = await extractTextFromImage(filePath);
-    } else if (file.type === "application/pdf") {
+    }
+
+    if (file.type === "application/pdf") {
       extractedText = await extractTextFromPdf(filePath);
     }
 
