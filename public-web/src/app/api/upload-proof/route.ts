@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/prisma";
-import { verifyReceiptAgainstExpected } from "@/lib/receipt-verifier";
-import { extractTextFromImage } from "@/lib/ocr";
-import { extractTextFromPdf } from "@/lib/pdf-text";
 import { uploadProofToCloudinary } from "@/lib/cloudinary";
 
 export async function POST(req: Request) {
@@ -61,55 +58,6 @@ export async function POST(req: Request) {
 
     await fs.writeFile(filePath, buffer);
 
-    let extractedText = "";
-    let verificationScore = 0;
-    let verificationNotes = "Verification not executed.";
-    let extractedAmount: number | null = null;
-    let extractedReceiver: string | null = null;
-    let extractedReference: string | null = null;
-    let derivedStatus = "PENDING_REVIEW";
-
-    if (file.type === "image/png" || file.type === "image/jpeg") {
-      extractedText = await extractTextFromImage(filePath);
-    }
-
-    if (file.type === "application/pdf") {
-      extractedText = await extractTextFromPdf(filePath);
-    }
-
-    if (extractedText && extractedText.trim().length > 0) {
-      const verification = verifyReceiptAgainstExpected({
-        extractedText,
-        expectedAmount: entry.lotteryItem.ticketPrice,
-        expectedReceiverPhone: entry.lotteryItem.receiverPhone,
-        expectedReferenceCode: entry.referenceCode,
-      });
-
-      extractedAmount = verification.extractedAmount;
-      extractedReceiver = verification.extractedReceiver;
-      extractedReference = verification.extractedReference;
-      verificationScore = verification.verificationScore;
-      verificationNotes = verification.verificationNotes;
-
-      derivedStatus =
-        verificationScore >= 90 ? "AUTO_VERIFIED" : "PENDING_REVIEW";
-    } else {
-      verificationNotes =
-        "No readable text was extracted. Manual review required.";
-    }
-
-    if (verificationScore === 0) {
-      await fs.unlink(filePath).catch(() => {});
-
-      return NextResponse.json(
-        {
-          error:
-            "This proof could not be verified. Please upload a valid payment receipt showing the amount, receiver number, or reference code.",
-        },
-        { status: 400 }
-      );
-    }
-
     const publicUrl = await uploadProofToCloudinary(
       filePath,
       entry.referenceCode
@@ -121,19 +69,19 @@ export async function POST(req: Request) {
       where: { id: entryId },
       data: {
         proofImageUrl: publicUrl,
-        status: derivedStatus,
-        extractedAmount,
-        extractedReceiver,
-        extractedReference,
-        verificationScore,
-        verificationNotes,
+        status: "PENDING_REVIEW",
+        extractedAmount: null,
+        extractedReceiver: null,
+        extractedReference: null,
+        verificationScore: 0,
+        verificationNotes:
+          "Proof uploaded successfully. OCR is disabled in deployment, so admin manual review is required.",
       },
     });
 
     return NextResponse.json({
       success: true,
       status: updated.status,
-      extractedText,
       entry: updated,
     });
   } catch (error) {
