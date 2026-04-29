@@ -161,6 +161,10 @@ export default async function PaymentPage({
                   Rs {entry.lotteryItem.ticketPrice}
                 </span>{" "}
                 using either Juice or bank transfer, then upload your receipt.
+                <br />
+                <span className="mt-2 inline-block font-semibold">
+                  Please note that all payments are final and non-refundable once submitted.
+                </span>
               </div>
             </div>
           </div>

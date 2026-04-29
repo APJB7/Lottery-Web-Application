@@ -15,15 +15,12 @@ type Entry = {
   verificationScore: number | null;
   verificationNotes: string | null;
   createdAt: string;
-
   applicantFullName: string;
   applicantEmail: string;
   applicantPhone: string;
   applicantAddress: string;
   applicantNationality: string;
-
   approvedParticipantId: string | null;
-
   lotteryItem: {
     id: string;
     title: string;
@@ -36,30 +33,25 @@ type Entry = {
 };
 
 function prettifyStatus(status: string) {
-  switch (status) {
-    case "PENDING_PAYMENT":
-      return "Pending Payment";
-    case "PENDING_REVIEW":
-      return "Pending Review";
-    case "AUTO_VERIFIED":
-      return "Auto Verified";
-    case "APPROVED":
-      return "Approved";
-    case "REJECTED":
-      return "Rejected";
-    case "CLOSED":
-      return "Closed";
-    case "OPEN":
-      return "Open";
-    default:
-      return status;
-  }
+  return status
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function statusBadgeClass(status: string) {
+  if (status === "APPROVED") return "bg-emerald-100 text-emerald-700";
+  if (status === "REJECTED") return "bg-rose-100 text-rose-700";
+  if (status === "PENDING_PAYMENT") return "bg-amber-100 text-amber-700";
+  if (status === "AUTO_VERIFIED") return "bg-cyan-100 text-cyan-700";
+  return "bg-slate-100 text-slate-700";
 }
 
 export default function AdminDashboardClient() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
   const [drawingWinner, setDrawingWinner] = useState(false);
   const [resettingWinner, setResettingWinner] = useState(false);
 
@@ -72,7 +64,7 @@ export default function AdminDashboardClient() {
       });
 
       const data = await res.json();
-      setEntries(data);
+      setEntries(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
       alert("Failed to load entries");
@@ -189,82 +181,99 @@ export default function AdminDashboardClient() {
   }, []);
 
   const filteredEntries = useMemo(() => {
-    if (filter === "ALL") return entries;
-    return entries.filter((entry) => entry.status === filter);
-  }, [entries, filter]);
+    let result = entries;
+
+    if (filter !== "ALL") {
+      result = result.filter((entry) => entry.status === filter);
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+
+      result = result.filter((entry) => {
+        return (
+          entry.applicantFullName.toLowerCase().includes(q) ||
+          entry.applicantEmail.toLowerCase().includes(q) ||
+          entry.applicantPhone.toLowerCase().includes(q) ||
+          entry.referenceCode.toLowerCase().includes(q) ||
+          entry.lotteryItem.title.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    return result;
+  }, [entries, filter, search]);
 
   const lotteryInfo = entries[0]?.lotteryItem;
 
   const stats = useMemo(() => {
-    const total = entries.length;
-    const pendingReview = entries.filter((e) => e.status === "PENDING_REVIEW").length;
-    const autoVerified = entries.filter((e) => e.status === "AUTO_VERIFIED").length;
-    const approved = entries.filter((e) => e.status === "APPROVED").length;
-    const rejected = entries.filter((e) => e.status === "REJECTED").length;
-
-    return { total, pendingReview, autoVerified, approved, rejected };
+    return {
+      total: entries.length,
+      pendingPayment: entries.filter((e) => e.status === "PENDING_PAYMENT")
+        .length,
+      pendingReview: entries.filter((e) => e.status === "PENDING_REVIEW")
+        .length,
+      approved: entries.filter((e) => e.status === "APPROVED").length,
+      rejected: entries.filter((e) => e.status === "REJECTED").length,
+    };
   }, [entries]);
 
   return (
     <PageShell>
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-[32px] bg-gradient-to-r from-emerald-700 to-cyan-700 px-8 py-8 text-white shadow-2xl">
-          <div className="flex items-start justify-between gap-4">
+        <div className="overflow-hidden rounded-[36px] border border-white/70 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 px-8 py-8 text-white shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
+          <div className="flex flex-wrap items-start justify-between gap-5">
             <div>
-              <p className="text-sm uppercase tracking-wide text-white/80">
+              <p className="text-sm uppercase tracking-[0.25em] text-white/75">
                 Control Center
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-tight">
+              <h1 className="mt-2 text-4xl font-black tracking-tight">
                 Admin Review Dashboard
               </h1>
-              <p className="mt-2 text-white/85">
-                Review receipts, approve entries, and draw the winner.
+              <p className="mt-2 max-w-2xl text-white/85">
+                Search applicants, review uploaded proofs, approve entries, and
+                draw the final winner.
               </p>
             </div>
 
             <button
               onClick={logout}
-              className="rounded-full bg-white px-5 py-2 text-sm font-medium text-slate-900 hover:bg-slate-100"
+              className="rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-900 shadow-lg hover:bg-slate-100"
             >
               Logout
             </button>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-5">
-            <div className="rounded-3xl bg-white/10 p-4">
-              <p className="text-sm text-white/75">Total Entries</p>
-              <p className="mt-2 text-2xl font-semibold">{stats.total}</p>
-            </div>
-            <div className="rounded-3xl bg-white/10 p-4">
-              <p className="text-sm text-white/75">Pending Review</p>
-              <p className="mt-2 text-2xl font-semibold">{stats.pendingReview}</p>
-            </div>
-            <div className="rounded-3xl bg-white/10 p-4">
-              <p className="text-sm text-white/75">Auto Verified</p>
-              <p className="mt-2 text-2xl font-semibold">{stats.autoVerified}</p>
-            </div>
-            <div className="rounded-3xl bg-white/10 p-4">
-              <p className="text-sm text-white/75">Approved</p>
-              <p className="mt-2 text-2xl font-semibold">{stats.approved}</p>
-            </div>
-            <div className="rounded-3xl bg-white/10 p-4">
-              <p className="text-sm text-white/75">Rejected</p>
-              <p className="mt-2 text-2xl font-semibold">{stats.rejected}</p>
-            </div>
+          <div className="mt-7 grid gap-4 md:grid-cols-5">
+            {[
+              ["Total Entries", stats.total],
+              ["Pending Payment", stats.pendingPayment],
+              ["Pending Review", stats.pendingReview],
+              ["Approved", stats.approved],
+              ["Rejected", stats.rejected],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-3xl border border-white/15 bg-white/15 p-4 backdrop-blur"
+              >
+                <p className="text-sm text-white/75">{label}</p>
+                <p className="mt-2 text-3xl font-black">{value}</p>
+              </div>
+            ))}
           </div>
 
           {lotteryInfo && (
-            <div className="mt-6 rounded-3xl bg-white/10 p-5">
-              <p className="text-lg font-semibold">{lotteryInfo.title}</p>
+            <div className="mt-6 rounded-3xl border border-white/15 bg-white/15 p-5 backdrop-blur">
+              <p className="text-lg font-bold">{lotteryInfo.title}</p>
               <p className="mt-1 text-white/85">
-                Lottery status:{" "}
-                <span className="font-semibold">
+                Status:{" "}
+                <span className="font-bold">
                   {prettifyStatus(lotteryInfo.status)}
                 </span>
               </p>
               <p className="mt-1 text-white/85">
                 Winner:{" "}
-                <span className="font-semibold">
+                <span className="font-bold">
                   {lotteryInfo.winnerName ?? "Not drawn yet"}
                 </span>
               </p>
@@ -273,7 +282,7 @@ export default function AdminDashboardClient() {
                 <button
                   onClick={drawWinner}
                   disabled={drawingWinner || !!lotteryInfo.winnerEntryId}
-                  className="rounded-full bg-white px-6 py-3 font-medium text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full bg-white px-6 py-3 font-bold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {lotteryInfo.winnerEntryId
                     ? "Winner Already Drawn"
@@ -285,7 +294,7 @@ export default function AdminDashboardClient() {
                 <button
                   onClick={resetWinner}
                   disabled={resettingWinner}
-                  className="rounded-full border border-white bg-transparent px-6 py-3 font-medium text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full border border-white bg-transparent px-6 py-3 font-bold text-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {resettingWinner ? "Resetting Winner..." : "Reset Winner"}
                 </button>
@@ -305,107 +314,129 @@ export default function AdminDashboardClient() {
               <button
                 key={value}
                 onClick={() => setFilter(value)}
-                className={`rounded-full px-4 py-2 text-sm font-medium ${filter === value
-                  ? "bg-white text-slate-900"
-                  : "bg-white/15 text-white hover:bg-white/25"
+                className={`rounded-full px-4 py-2 text-sm font-bold transition ${filter === value
+                    ? "bg-white text-slate-900"
+                    : "bg-white/15 text-white hover:bg-white/25"
                   }`}
               >
                 {prettifyStatus(value)}
               </button>
             ))}
           </div>
+
+          <div className="mt-6 rounded-3xl border border-white/20 bg-white/15 p-3 backdrop-blur">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, email, phone, reference, or lottery item..."
+              className="w-full rounded-2xl border border-white/40 bg-white px-5 py-4 text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-300"
+            />
+          </div>
         </div>
 
         {loading ? (
-          <p className="mt-8">Loading entries...</p>
+          <p className="mt-8 text-slate-600">Loading entries...</p>
         ) : filteredEntries.length === 0 ? (
-          <p className="mt-8">No entries found.</p>
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
+            No entries found.
+          </div>
         ) : (
-          <div className="mt-8 grid gap-6">
+          <div className="mt-8 grid gap-7">
             {filteredEntries.map((entry) => (
-              <div key={entry.id} className="rounded-[28px] bg-white p-6 shadow-xl">
-                <div className="grid gap-6 xl:grid-cols-[1fr,280px]">
-                  <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="space-y-2 rounded-3xl bg-slate-50 p-5">
-                      <h3 className="text-lg font-semibold text-slate-900">
+              <div
+                key={entry.id}
+                className="overflow-hidden rounded-[34px] border border-slate-200/80 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.09)]"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-cyan-50 px-6 py-5">
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-wide text-cyan-700">
+                      {entry.referenceCode}
+                    </p>
+                    <h2 className="mt-1 text-2xl font-black text-slate-950">
+                      {entry.applicantFullName}
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {entry.applicantEmail}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`rounded-full px-4 py-2 text-sm font-bold ${statusBadgeClass(
+                      entry.status
+                    )}`}
+                  >
+                    {prettifyStatus(entry.status)}
+                  </span>
+                </div>
+
+                <div className="grid gap-6 p-6 xl:grid-cols-[1fr,300px]">
+                  <div className="grid gap-5 lg:grid-cols-2">
+                    <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5">
+                      <h3 className="text-lg font-black text-slate-900">
                         Applicant
                       </h3>
-                      <p>
-                        <span className="font-medium text-slate-900">Name:</span>{" "}
-                        {entry.applicantFullName}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Email:</span>{" "}
-                        {entry.applicantEmail}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Phone:</span>{" "}
-                        {entry.applicantPhone}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Nationality:</span>{" "}
-                        {entry.applicantNationality}
-                      </p>
+                      <div className="mt-3 space-y-2 text-sm text-slate-700">
+                        <p>
+                          <span className="font-bold">Phone:</span>{" "}
+                          {entry.applicantPhone}
+                        </p>
+                        <p>
+                          <span className="font-bold">Nationality:</span>{" "}
+                          {entry.applicantNationality}
+                        </p>
+                        <p>
+                          <span className="font-bold">Address:</span>{" "}
+                          {entry.applicantAddress}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="space-y-2 rounded-3xl bg-slate-50 p-5">
-                      <h3 className="text-lg font-semibold text-slate-900">
+                    <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5">
+                      <h3 className="text-lg font-black text-slate-900">
                         Payment Context
                       </h3>
-                      <p>
-                        <span className="font-medium text-slate-900">Lottery Item:</span>{" "}
-                        {entry.lotteryItem.title}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Expected Amount:</span>{" "}
-                        Rs {entry.lotteryItem.ticketPrice}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Receiver:</span>{" "}
-                        {entry.lotteryItem.receiverPhone}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Reference:</span>{" "}
-                        {entry.referenceCode}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Status:</span>{" "}
-                        <span className="rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 px-3 py-1 text-sm text-white">
-                          {prettifyStatus(entry.status)}
-                        </span>
-                      </p>
+                      <div className="mt-3 space-y-2 text-sm text-slate-700">
+                        <p>
+                          <span className="font-bold">Lottery:</span>{" "}
+                          {entry.lotteryItem.title}
+                        </p>
+                        <p>
+                          <span className="font-bold">Expected Amount:</span> Rs{" "}
+                          {entry.lotteryItem.ticketPrice}
+                        </p>
+                        <p>
+                          <span className="font-bold">Receiver:</span>{" "}
+                          {entry.lotteryItem.receiverPhone}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="space-y-2 rounded-3xl bg-slate-50 p-5 lg:col-span-2">
-                      <h3 className="text-lg font-semibold text-slate-900">
+                    <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5 lg:col-span-2">
+                      <h3 className="text-lg font-black text-slate-900">
                         Verification Summary
                       </h3>
-                      <p>
-                        <span className="font-medium text-slate-900">Extracted Amount:</span>{" "}
-                        {entry.extractedAmount ?? "Not detected"}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Extracted Receiver:</span>{" "}
-                        {entry.extractedReceiver ?? "Not detected"}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Extracted Reference:</span>{" "}
-                        {entry.extractedReference ?? "Not detected"}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Verification Score:</span>{" "}
-                        {entry.verificationScore ?? 0}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Verification Level:</span>{" "}
-                        {(entry.verificationScore ?? 0) >= 90
-                          ? "Auto Verified (High Confidence)"
-                          : "Manual Review Required"}
-                      </p>
-                      <p>
-                        <span className="font-medium text-slate-900">Notes:</span>{" "}
-                        {entry.verificationNotes ?? "No notes"}
-                      </p>
+                      <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
+                        <p>
+                          <span className="font-bold">Extracted Amount:</span>{" "}
+                          {entry.extractedAmount ?? "Not detected"}
+                        </p>
+                        <p>
+                          <span className="font-bold">Extracted Receiver:</span>{" "}
+                          {entry.extractedReceiver ?? "Not detected"}
+                        </p>
+                        <p>
+                          <span className="font-bold">Extracted Reference:</span>{" "}
+                          {entry.extractedReference ?? "Not detected"}
+                        </p>
+                        <p>
+                          <span className="font-bold">Score:</span>{" "}
+                          {entry.verificationScore ?? 0}
+                        </p>
+                        <p className="md:col-span-2">
+                          <span className="font-bold">Notes:</span>{" "}
+                          {entry.verificationNotes ?? "No notes"}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -415,12 +446,12 @@ export default function AdminDashboardClient() {
                         href={entry.proofImageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-2xl bg-white px-4 py-3 text-center font-medium text-slate-950 hover:bg-slate-100"
+                        className="rounded-2xl bg-white px-4 py-3 text-center font-bold text-slate-950 hover:bg-slate-100"
                       >
                         View Proof
                       </a>
                     ) : (
-                      <div className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-medium text-amber-800">
+                      <div className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-bold text-amber-800">
                         No proof uploaded yet
                       </div>
                     )}
@@ -429,22 +460,31 @@ export default function AdminDashboardClient() {
                       <>
                         <button
                           onClick={() => updateStatus(entry.id, "APPROVED")}
-                          className="rounded-2xl bg-emerald-500 px-4 py-3 font-medium text-white hover:bg-emerald-600"
+                          className="rounded-2xl bg-emerald-500 px-4 py-3 font-bold text-white hover:bg-emerald-600"
                         >
                           Approve Entry
                         </button>
 
                         <button
                           onClick={() => updateStatus(entry.id, "REJECTED")}
-                          className="rounded-2xl bg-rose-500 px-4 py-3 font-medium text-white hover:bg-rose-600"
+                          className="rounded-2xl bg-rose-500 px-4 py-3 font-bold text-white hover:bg-rose-600"
                         >
                           Reject Entry
                         </button>
                       </>
                     ) : entry.status === "PENDING_PAYMENT" ? (
-                      <div className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-medium text-amber-800">
-                        Awaiting proof upload. This applicant has not submitted payment proof yet.
-                      </div>
+                      <>
+                        <div className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-bold text-amber-800">
+                          Awaiting proof upload.
+                        </div>
+
+                        <button
+                          onClick={() => updateStatus(entry.id, "REJECTED")}
+                          className="rounded-2xl bg-rose-500 px-4 py-3 font-bold text-white hover:bg-rose-600"
+                        >
+                          Reject Entry
+                        </button>
+                      </>
                     ) : (
                       <div className="rounded-2xl bg-white/10 px-4 py-3 text-center text-sm text-slate-300">
                         This entry has already been finalised.
