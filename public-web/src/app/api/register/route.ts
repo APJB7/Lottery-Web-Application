@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { slug, fullName, email, phone, address, nationality} = parsed.data;
+    const { slug, fullName, email, phone, address, nationality } = parsed.data;
 
     const lotteryItem = await prisma.lotteryItem.findUnique({
       where: { slug },
@@ -52,25 +52,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingEntry = await prisma.entry.findFirst({
-      where: {
-        lotteryItemId: lotteryItem.id,
-        applicantEmail: email,
-        status: {
-          in: ["PENDING_PAYMENT", "PENDING_REVIEW", "AUTO_VERIFIED", "APPROVED"],
-        },
-      },
-    });
 
-    if (existingEntry) {
-      return NextResponse.json(
-        {
-          error:
-            "An entry already exists for this email address in the current lottery.",
-        },
-        { status: 400 }
-      );
-    }
 
     const entry = await prisma.entry.create({
       data: {

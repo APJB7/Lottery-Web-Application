@@ -2,18 +2,19 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageShell from "@/components/PageShell";
-import SectionCard from "@/components/SectionCard";
-
-function prettifyStatus(status: string) {
-  switch (status) {
-    case "OPEN":
-      return "Open";
-    case "CLOSED":
-      return "Closed";
-    default:
-      return status;
-  }
-}
+import {
+  AlertTriangle,
+  ArrowRight,
+  CalendarDays,
+  CreditCard,
+  Hash,
+  ShieldCheck,
+  Ticket,
+  Trophy,
+  UploadCloud,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 
 export default async function LotteryPage({
   params,
@@ -28,114 +29,239 @@ export default async function LotteryPage({
 
   if (!item) return notFound();
 
-  const canParticipate = item.status !== "CLOSED" && !item.winnerName;
+  const isClosed = item.status === "CLOSED";
+
+  const drawDate = item.drawDate
+    ? new Date(item.drawDate).toLocaleString()
+    : "To be announced";
 
   return (
     <PageShell>
-      <div className="mx-auto max-w-7xl">
-        <div className="grid gap-8 lg:grid-cols-[1.25fr,0.95fr]">
-          <div className="overflow-hidden rounded-[32px] bg-white shadow-xl">
-            <div className="flex h-[460px] w-full items-center justify-center bg-gradient-to-br from-slate-50 to-cyan-50 p-8">
-              <img
-                src={item.imageUrl}
-                alt={item.title}
-                className="max-h-full max-w-full object-contain drop-shadow-2xl"
-              />
-            </div>
-
-            <div className="p-8">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
-                  {prettifyStatus(item.status)}
+      <div className="mx-auto max-w-6xl pb-24 md:pb-0">
+        <section className="overflow-hidden rounded-[34px] border border-slate-200 bg-white p-5 shadow-[0_24px_90px_rgba(15,23,42,0.08)] md:p-8">
+          <div className="grid gap-6 lg:grid-cols-[1fr,0.9fr]">
+            <div>
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-black uppercase tracking-wide ${
+                    isClosed
+                      ? "bg-rose-100 text-rose-700"
+                      : "bg-emerald-100 text-emerald-700"
+                  }`}
+                >
+                  {isClosed ? <Trophy size={15} /> : <ShieldCheck size={15} />}
+                  {isClosed ? "Winner Drawn" : "Live Now"}
                 </span>
 
-                <span className="rounded-full bg-cyan-100 px-3 py-1 text-sm font-medium text-cyan-700">
-                  {item.totalParticipants} participants
+                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-cyan-100 px-4 py-2 text-xs font-black uppercase tracking-wide text-cyan-700">
+                  <Ticket size={15} />
+                  Rs {item.ticketPrice}
                 </span>
               </div>
 
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950">
+              <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 md:text-5xl">
                 {item.title}
               </h1>
 
-              <p className="mt-4 text-lg leading-8 text-slate-600">
+              <p className="mt-3 text-base leading-7 text-slate-600 md:text-lg">
                 {item.description}
               </p>
 
-              {item.winnerName && (
-                <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
-                  <p className="text-sm uppercase tracking-wide text-emerald-700">
-                    Winner Announced
+              {isClosed && item.winnerName && (
+                <div className="mt-6 rounded-[26px] border border-amber-200 bg-amber-50 p-5 text-amber-900">
+                  <p className="flex items-center gap-2 text-sm font-black uppercase tracking-wide">
+                    <Trophy size={18} />
+                    Winner Announcement
                   </p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">
+                  <h2 className="mt-2 text-2xl font-black">
                     {item.winnerName}
+                  </h2>
+                  <p className="mt-1 text-sm">
+                    This lottery has already been drawn.
                   </p>
                 </div>
               )}
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <InfoCard
+                  icon={Ticket}
+                  label="Ticket Price"
+                  value={`Rs ${item.ticketPrice}`}
+                />
+                <InfoCard
+                  icon={CreditCard}
+                  label="Receiver"
+                  value={item.receiverPhone}
+                />
+                <InfoCard
+                  icon={CalendarDays}
+                  label="Draw Date"
+                  value={drawDate}
+                />
+              </div>
+
+              {!isClosed && (
+                <div className="mt-6 rounded-[26px] border border-orange-100 bg-orange-50 p-5">
+                  <p className="text-sm font-bold uppercase tracking-wide text-orange-700">
+                    Ready to join?
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black text-slate-950">
+                    Review the steps and reserve your entry
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    A unique payment reference will be generated after
+                    registration.
+                  </p>
+
+                  <Link
+                    href={`/register/${item.slug}`}
+                    className="mt-5 hidden w-fit items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-8 py-4 text-base font-black text-white shadow-xl shadow-orange-500/25 transition hover:-translate-y-1 hover:scale-105 md:inline-flex"
+                  >
+                    Participate Now
+                    <ArrowRight size={19} />
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <div className="relative flex min-h-[260px] items-center justify-center overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-950 via-emerald-950 to-cyan-950 p-6 md:min-h-[420px]">
+              <div className="absolute h-72 w-72 animate-soft-pulse rounded-full bg-emerald-400/20 blur-3xl" />
+              <div className="absolute -bottom-20 -right-20 h-72 w-72 animate-float rounded-full bg-cyan-400/20 blur-3xl" />
+
+              <img
+                src={item.imageUrl}
+                alt={item.title}
+                className="relative z-10 max-h-[360px] max-w-full object-contain drop-shadow-2xl transition duration-500 hover:scale-105"
+              />
             </div>
           </div>
+        </section>
 
-          <div className="space-y-6">
-            <SectionCard title="Lottery Details">
-              <div className="space-y-3">
-                <p>
-                  <span className="font-semibold text-slate-900">Ticket Price:</span>{" "}
-                  Rs {item.ticketPrice}
-                </p>
-
-                <p>
-                  <span className="font-semibold text-slate-900">Receiver Number:</span>{" "}
-                  {item.receiverPhone}
-                </p>
-
-                <p>
-                  <span className="font-semibold text-slate-900">Draw Date:</span>{" "}
-                  {item.drawDate
-                    ? new Date(item.drawDate).toLocaleString()
-                    : "To be announced"}
-                </p>
-              </div>
-            </SectionCard>
-
-            <SectionCard title="How It Works">
-              <ol className="list-decimal space-y-3 pl-5">
-                <li>Complete the registration form.</li>
-                <li>Make payment using the given receiver number.</li>
-                <li>Include your generated reference in the payment description.</li>
-                <li>Upload your proof of payment.</li>
-                <li>Await admin approval and email confirmation.</li>
-              </ol>
-            </SectionCard>
-
-            {canParticipate ? (
-              <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-cyan-600 p-6 text-white shadow-xl">
-                <p className="text-sm uppercase tracking-wide text-white/80">
-                  Ready to join?
-                </p>
-
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Reserve your entry now
-                </h2>
-
-                <p className="mt-3 text-white/85">
-                  A unique payment reference will be generated for your registration.
-                </p>
-
-                <Link
-                  href={`/register/${item.slug}`}
-                  className="mt-6 inline-flex rounded-full bg-white px-6 py-3 font-medium text-slate-900 hover:bg-slate-100"
-                >
-                  Participate Now
-                </Link>
-              </div>
-            ) : (
-              <div className="rounded-3xl border border-slate-200 bg-slate-100 p-6 text-slate-700">
-                This lottery is closed and no longer accepts new entries.
-              </div>
-            )}
+        <section className="mt-6 rounded-[34px] border border-slate-200 bg-white p-5 shadow-[0_18px_70px_rgba(15,23,42,0.07)] md:p-8">
+          <div className="mb-5">
+            <p className="text-sm font-black uppercase tracking-[0.25em] text-cyan-700">
+              Process
+            </p>
+            <h2 className="mt-2 text-2xl font-black text-slate-950 md:text-3xl">
+              How It Works
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              The steps are simple, but proof upload is required before your
+              entry can be approved.
+            </p>
           </div>
-        </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <StepCard
+              number="1"
+              icon={UserRound}
+              title="Register"
+              text="Fill in your details."
+            />
+            <StepCard
+              number="2"
+              icon={CreditCard}
+              title="Pay"
+              text="Use Juice or bank transfer."
+            />
+            <StepCard
+              number="3"
+              icon={Hash}
+              title="Add Reference"
+              text="Include your unique reference."
+            />
+            <StepCard
+              number="4"
+              icon={UploadCloud}
+              title="Upload Proof"
+              text="Upload your payment receipt."
+            />
+            <StepCard
+              number="5"
+              icon={ShieldCheck}
+              title="Confirmation"
+              text="Admin verifies your entry."
+            />
+          </div>
+
+          <div className="mt-5 rounded-[22px] border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
+            Your information is used only for registration, payment
+            verification, and lottery participation. Payments are final and
+            non-refundable once submitted.
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-[30px] border border-amber-200 bg-amber-50 p-5 text-amber-900">
+          <p className="flex items-center gap-2 font-black">
+            <AlertTriangle size={20} />
+            Important Notice
+          </p>
+          <p className="mt-2 text-sm leading-6">
+            Your entry is not confirmed immediately after registration. It will
+            remain pending until you upload payment proof and the admin approves
+            it.
+          </p>
+        </section>
+
+        {!isClosed && (
+          <div className="fixed inset-x-0 bottom-0 z-50 border-t border-orange-100 bg-white/95 p-4 shadow-[0_-10px_35px_rgba(15,23,42,0.12)] backdrop-blur md:hidden">
+            <Link
+              href={`/register/${item.slug}`}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-6 py-4 text-base font-black text-white shadow-lg shadow-orange-500/30"
+            >
+              Participate Now
+              <ArrowRight size={19} />
+            </Link>
+          </div>
+        )}
       </div>
     </PageShell>
+  );
+}
+
+function InfoCard({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
+      <div className="flex items-center gap-2 text-slate-500">
+        <Icon size={17} />
+        <p className="text-xs font-bold uppercase tracking-wide">{label}</p>
+      </div>
+      <p className="mt-2 text-base font-black text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function StepCard({
+  number,
+  icon: Icon,
+  title,
+  text,
+}: {
+  number: string;
+  icon: LucideIcon;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-center transition hover:-translate-y-1 hover:bg-white hover:shadow-lg">
+      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-100 text-sm font-black text-emerald-700">
+        {number}
+      </div>
+
+      <div className="mx-auto mt-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-lg shadow-cyan-500/20">
+        <Icon size={24} strokeWidth={2.5} />
+      </div>
+
+      <h3 className="mt-3 font-black text-slate-950">{title}</h3>
+      <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
+    </div>
   );
 }

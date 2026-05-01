@@ -2,6 +2,17 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageShell from "@/components/PageShell";
+import CopyButton from "@/components/CopyButton";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Banknote,
+  CreditCard,
+  Hash,
+  ShieldCheck,
+  Smartphone,
+  UserRound,
+} from "lucide-react";
 
 const BANK_ACCOUNT_NUMBER = "000441860540";
 const JUICE_PHONE_NUMBER = "59494264";
@@ -18,9 +29,7 @@ export default async function PaymentPage({
 
   const entry = await prisma.entry.findUnique({
     where: { id: entryId },
-    include: {
-      lotteryItem: true,
-    },
+    include: { lotteryItem: true },
   });
 
   if (!entry) return notFound();
@@ -29,147 +38,179 @@ export default async function PaymentPage({
 
   return (
     <PageShell>
-      <div className="mx-auto max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-xl">
-        <div className="grid lg:grid-cols-[1.1fr,0.9fr]">
-          <div className="p-8">
-            <p className="text-sm uppercase tracking-wide text-cyan-600">
+      <div className="mx-auto max-w-6xl pb-24">
+        <section className="overflow-hidden rounded-[34px] border border-slate-200 bg-white shadow-xl">
+          <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 text-white md:p-8">
+            <p className="text-sm font-black uppercase tracking-[0.25em] text-white/75">
               Step 2 of 3
             </p>
-
-            <h1 className="mt-2 text-3xl font-semibold text-slate-950">
+            <h1 className="mt-3 text-3xl font-black md:text-5xl">
               Complete your payment
             </h1>
-
-            <p className="mt-3 text-slate-600">
-              Please pay using either Juice or bank transfer. Include your
-              reference number in the payment description.
+            <p className="mt-3 max-w-2xl text-white/85">
+              Use Juice or bank transfer. The most important part is adding your
+              reference code in the payment description.
             </p>
-
-            <div className="mt-6 rounded-3xl border border-cyan-200 bg-cyan-50 p-6">
-              <p className="text-sm font-medium uppercase tracking-wide text-cyan-700">
-                Important payment instruction
-              </p>
-
-              <p className="mt-3 text-lg text-slate-800">
-                Your reference number is:
-              </p>
-
-              <p className="mt-2 rounded-2xl bg-white px-4 py-3 text-2xl font-bold tracking-wide text-cyan-700 shadow-sm">
-                {referenceCode}
-              </p>
-
-              <p className="mt-4 text-sm text-slate-700">
-                Please copy this reference number and include it in the{" "}
-                <span className="font-semibold">payment description / note</span>{" "}
-                when making the payment.
-              </p>
-            </div>
-
-            <div className="mt-8 space-y-4 rounded-3xl bg-slate-50 p-6">
-              <p>
-                <span className="font-semibold text-slate-900">Applicant:</span>{" "}
-                {entry.applicantFullName}
-              </p>
-
-              <p>
-                <span className="font-semibold text-slate-900">
-                  Lottery Item:
-                </span>{" "}
-                {entry.lotteryItem.title}
-              </p>
-
-              <p>
-                <span className="font-semibold text-slate-900">Amount:</span> Rs{" "}
-                {entry.lotteryItem.ticketPrice}
-              </p>
-
-              <p>
-                <span className="font-semibold text-slate-900">
-                  Bank Account Number:
-                </span>{" "}
-                {BANK_ACCOUNT_NUMBER}
-              </p>
-
-              <p>
-                <span className="font-semibold text-slate-900">
-                  Juice Phone Number:
-                </span>{" "}
-                {JUICE_PHONE_NUMBER}
-              </p>
-
-              <p>
-                <span className="font-semibold text-slate-900">
-                  Payment Reference:
-                </span>{" "}
-                {referenceCode}
-              </p>
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
-              After completing the payment, upload your proof of payment so the
-              admin can verify it.
-            </div>
-
-            <Link
-              href={`/upload-proof/${entry.id}`}
-              className="mt-8 inline-flex rounded-full bg-gradient-to-r from-emerald-600 to-cyan-600 px-6 py-3 font-medium text-white hover:opacity-95"
-            >
-              I Have Paid, Continue
-            </Link>
           </div>
 
-          <div className="flex items-center justify-center bg-gradient-to-br from-emerald-600 to-cyan-700 p-10">
-            <div className="w-full rounded-[28px] bg-white p-8 shadow-2xl">
-              <p className="text-sm uppercase tracking-wide text-cyan-600">
-                Payment Options
-              </p>
+          <div className="grid gap-6 p-5 md:p-8 lg:grid-cols-[1fr,0.9fr]">
+            <div className="space-y-5">
+              <div className="rounded-[28px] border-2 border-orange-200 bg-orange-50 p-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white">
+                    <AlertTriangle size={25} />
+                  </div>
 
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                Choose your payment method
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-wide text-orange-700">
+                      Very important
+                    </p>
+                    <h2 className="mt-1 text-2xl font-black text-slate-950">
+                      Add this reference in your payment description
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">
+                      Without this reference, your payment may be difficult to
+                      match with your entry.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-3xl bg-white p-4 shadow-sm">
+                  <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-400">
+                    <Hash size={16} />
+                    Payment Reference
+                  </p>
+
+                  <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="break-all text-2xl font-black tracking-wide text-orange-600 md:text-3xl">
+                      {referenceCode}
+                    </p>
+                    <CopyButton value={referenceCode} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <PaymentCard
+                  icon={Smartphone}
+                  title="Pay by Juice"
+                  label="Juice Phone Number"
+                  value={JUICE_PHONE_NUMBER}
+                />
+
+                <PaymentCard
+                  icon={Banknote}
+                  title="Pay by Bank Transfer"
+                  label="Bank Account Number"
+                  value={BANK_ACCOUNT_NUMBER}
+                />
+              </div>
+
+              <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm font-black uppercase tracking-wide text-slate-500">
+                  Entry Summary
+                </p>
+
+                <div className="mt-4 grid gap-3 text-sm text-slate-700">
+                  <SummaryLine icon={UserRound} label="Applicant" value={entry.applicantFullName} />
+                  <SummaryLine icon={CreditCard} label="Lottery Item" value={entry.lotteryItem.title} />
+                  <SummaryLine icon={Banknote} label="Amount" value={`Rs ${entry.lotteryItem.ticketPrice}`} />
+                  <SummaryLine icon={Hash} label="Reference" value={referenceCode} />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[30px] border border-cyan-100 bg-cyan-50 p-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-600 text-white">
+                <ShieldCheck size={30} />
+              </div>
+
+              <h2 className="mt-5 text-2xl font-black text-slate-950">
+                Payment checklist
               </h2>
 
-              <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-                <p className="text-sm font-medium text-slate-500">
-                  Bank Account Number
-                </p>
-                <p className="mt-2 break-all text-3xl font-black tracking-wide text-slate-950">
-                  {BANK_ACCOUNT_NUMBER}
-                </p>
+              <div className="mt-5 space-y-4">
+                <CheckItem text={`Transfer exactly Rs ${entry.lotteryItem.ticketPrice}.`} />
+                <CheckItem text="Use either Juice or bank transfer." />
+                <CheckItem text="Paste the reference code in the payment description/note." />
+                <CheckItem text="Take a screenshot or save the payment receipt." />
+                <CheckItem text="Upload the proof on the next page." />
               </div>
 
-              <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
-                <p className="text-sm font-medium text-emerald-700">
-                  Juice Phone Number
-                </p>
-                <p className="mt-2 break-all text-3xl font-black tracking-wide text-emerald-700">
-                  {JUICE_PHONE_NUMBER}
-                </p>
+              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+                Payments are final and non-refundable once submitted.
               </div>
 
-              <div className="mt-5 rounded-3xl border border-cyan-200 bg-cyan-50 p-6">
-                <p className="text-sm font-medium text-cyan-700">
-                  Reference to include
-                </p>
-                <p className="mt-2 break-all text-2xl font-bold tracking-wide text-cyan-700">
-                  {referenceCode}
-                </p>
-              </div>
-
-              <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-                Transfer exactly{" "}
-                <span className="font-bold">
-                  Rs {entry.lotteryItem.ticketPrice}
-                </span>{" "}
-                using either Juice or bank transfer, then upload your receipt.
-                <br />
-                <span className="mt-2 inline-block font-semibold">
-                  Please note that all payments are final and non-refundable once submitted.
-                </span>
-              </div>
+              <Link
+                href={`/upload-proof/${entry.id}`}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-6 py-4 text-base font-black text-white shadow-lg shadow-orange-500/30 transition hover:-translate-y-1 hover:scale-[1.02]"
+              >
+                I Have Paid, Continue
+                <ArrowRight size={19} />
+              </Link>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </PageShell>
+  );
+}
+
+function PaymentCard({
+  icon: Icon,
+  title,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  title: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white">
+        <Icon size={25} />
+      </div>
+
+      <h3 className="mt-4 text-lg font-black text-slate-950">{title}</h3>
+      <p className="mt-3 text-xs font-black uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
+
+      <div className="mt-2 flex flex-col gap-3">
+        <p className="break-all text-2xl font-black text-slate-950">{value}</p>
+        <CopyButton value={value} />
+      </div>
+    </div>
+  );
+}
+
+function SummaryLine({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3">
+      <Icon size={18} className="shrink-0 text-cyan-600" />
+      <p>
+        <span className="font-black text-slate-950">{label}:</span>{" "}
+        <span>{value}</span>
+      </p>
+    </div>
+  );
+}
+
+function CheckItem({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
+      <ShieldCheck size={18} className="mt-0.5 shrink-0 text-emerald-600" />
+      <p className="font-semibold">{text}</p>
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { uploadProofToCloudinary } from "@/lib/cloudinary";
+import { sendEmail, underReviewEmailTemplate } from "@/lib/email";
 
 export async function POST(req: Request) {
   let filePath: string | null = null;
@@ -50,8 +51,8 @@ export async function POST(req: Request) {
       file.name.includes(".") && file.name.split(".").pop()
         ? file.name.split(".").pop()
         : file.type === "application/pdf"
-        ? "pdf"
-        : "jpg";
+          ? "pdf"
+          : "jpg";
 
     const safeFilename = `${Date.now()}-${entry.referenceCode}.${ext}`;
     filePath = path.join(uploadsDir, safeFilename);
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
       entry.referenceCode
     );
 
-    await fs.unlink(filePath).catch(() => {});
+    await fs.unlink(filePath).catch(() => { });
 
     const updated = await prisma.entry.update({
       where: { id: entryId },
@@ -79,6 +80,18 @@ export async function POST(req: Request) {
       },
     });
 
+    await sendEmail({
+      to: entry.applicantEmail,
+      subject: "Your payment proof is under review",
+      html: underReviewEmailTemplate({
+        fullName: entry.applicantFullName,
+        itemTitle: entry.lotteryItem.title,
+        referenceCode: entry.referenceCode,
+      }),
+    }).catch((emailError) => {
+      console.error("UNDER_REVIEW_EMAIL_ERROR:", emailError);
+    });
+
     return NextResponse.json({
       success: true,
       status: updated.status,
@@ -88,7 +101,7 @@ export async function POST(req: Request) {
     console.error("UPLOAD_PROOF_ERROR:", error);
 
     if (filePath) {
-      await fs.unlink(filePath).catch(() => {});
+      await fs.unlink(filePath).catch(() => { });
     }
 
     return NextResponse.json(

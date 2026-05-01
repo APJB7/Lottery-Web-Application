@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+
+const updateDateSchema = z.object({
+  lotteryItemId: z.string(),
+  drawDate: z.string().optional(),
+  closingDate: z.string().optional(),
+});
 
 export async function POST(req: Request) {
   try {
@@ -11,21 +18,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { lotteryItemId } = await req.json();
+    const body = await req.json();
+    const parsed = updateDateSchema.safeParse(body);
 
-    if (!lotteryItemId) {
-      return NextResponse.json(
-        { error: "Missing lottery item id" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
+
+    const { lotteryItemId, drawDate, closingDate } = parsed.data;
 
     const updated = await prisma.lotteryItem.update({
       where: { id: lotteryItemId },
       data: {
-        winnerName: null,
-        winnerEntryId: null,
-        status: "OPEN",
+        drawDate: drawDate ? new Date(drawDate) : null,
+        closingDate: closingDate ? new Date(closingDate) : null,
       },
     });
 
@@ -34,9 +40,9 @@ export async function POST(req: Request) {
       lotteryItem: updated,
     });
   } catch (error) {
-    console.error("RESET_WINNER_ERROR:", error);
+    console.error("UPDATE_LOTTERY_DATE_ERROR:", error);
     return NextResponse.json(
-      { error: "Failed to reset winner" },
+      { error: "Failed to update lottery date" },
       { status: 500 }
     );
   }
