@@ -39,8 +39,8 @@ export default async function PaymentPage({
   return (
     <PageShell>
       <div className="mx-auto max-w-6xl pb-24">
-        <section className="overflow-hidden rounded-[34px] border border-slate-200 bg-white shadow-xl">
-          <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 text-white md:p-8">
+        <section className="overflow-hidden rounded-[34px] border border-cyan-100 bg-white shadow-xl">
+          <div className="bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-500 p-6 text-white md:p-8">
             <p className="text-sm font-black uppercase tracking-[0.25em] text-white/75">
               Step 2 of 3
             </p>
@@ -48,21 +48,21 @@ export default async function PaymentPage({
               Complete your payment
             </h1>
             <p className="mt-3 max-w-2xl text-white/85">
-              Use Juice or bank transfer. The most important part is adding your
-              reference code in the payment description.
+              Use Juice or bank transfer. Please add your reference code in the
+              payment description so your entry can be verified.
             </p>
           </div>
 
           <div className="grid gap-6 p-5 md:p-8 lg:grid-cols-[1fr,0.9fr]">
             <div className="space-y-5">
-              <div className="rounded-[28px] border-2 border-orange-200 bg-orange-50 p-5">
+              <div className="rounded-[28px] border-2 border-cyan-200 bg-cyan-50 p-5">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cyan-600 text-white">
                     <AlertTriangle size={25} />
                   </div>
 
                   <div>
-                    <p className="text-sm font-black uppercase tracking-wide text-orange-700">
+                    <p className="text-sm font-black uppercase tracking-wide text-cyan-700">
                       Very important
                     </p>
                     <h2 className="mt-1 text-2xl font-black text-slate-950">
@@ -82,7 +82,7 @@ export default async function PaymentPage({
                   </p>
 
                   <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="break-all text-2xl font-black tracking-wide text-orange-600 md:text-3xl">
+                    <p className="break-all text-2xl font-black tracking-wide text-cyan-700 md:text-3xl">
                       {referenceCode}
                     </p>
                     <CopyButton value={referenceCode} />
@@ -106,16 +106,32 @@ export default async function PaymentPage({
                 />
               </div>
 
-              <div className="rounded-[26px] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-sm font-black uppercase tracking-wide text-slate-500">
+              <div className="rounded-[26px] border border-cyan-100 bg-cyan-50/50 p-5">
+                <p className="text-sm font-black uppercase tracking-wide text-cyan-700">
                   Entry Summary
                 </p>
 
                 <div className="mt-4 grid gap-3 text-sm text-slate-700">
-                  <SummaryLine icon={UserRound} label="Applicant" value={entry.applicantFullName} />
-                  <SummaryLine icon={CreditCard} label="Lottery Item" value={entry.lotteryItem.title} />
-                  <SummaryLine icon={Banknote} label="Amount" value={`Rs ${entry.lotteryItem.ticketPrice}`} />
-                  <SummaryLine icon={Hash} label="Reference" value={referenceCode} />
+                  <SummaryLine
+                    icon={UserRound}
+                    label="Applicant"
+                    value={entry.applicantFullName}
+                  />
+                  <SummaryLine
+                    icon={CreditCard}
+                    label="Lottery Item"
+                    value={entry.lotteryItem.title}
+                  />
+                  <SummaryLine
+                    icon={Banknote}
+                    label="Amount"
+                    value={`Rs ${entry.lotteryItem.ticketPrice}`}
+                  />
+                  <SummaryLine
+                    icon={Hash}
+                    label="Reference"
+                    value={referenceCode}
+                  />
                 </div>
               </div>
             </div>
@@ -130,20 +146,22 @@ export default async function PaymentPage({
               </h2>
 
               <div className="mt-5 space-y-4">
-                <CheckItem text={`Transfer exactly Rs ${entry.lotteryItem.ticketPrice}.`} />
+                <CheckItem
+                  text={`Transfer exactly Rs ${entry.lotteryItem.ticketPrice}.`}
+                />
                 <CheckItem text="Use either Juice or bank transfer." />
                 <CheckItem text="Paste the reference code in the payment description/note." />
                 <CheckItem text="Take a screenshot or save the payment receipt." />
                 <CheckItem text="Upload the proof on the next page." />
               </div>
 
-              <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+              <div className="mt-6 rounded-2xl border border-cyan-200 bg-white p-4 text-sm leading-6 text-cyan-900">
                 Payments are final and non-refundable once submitted.
               </div>
 
               <Link
                 href={`/upload-proof/${entry.id}`}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-6 py-4 text-base font-black text-white shadow-lg shadow-orange-500/30 transition hover:-translate-y-1 hover:scale-[1.02]"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-6 py-4 text-base font-black text-white shadow-lg shadow-cyan-500/30 transition hover:-translate-y-1 hover:scale-[1.02]"
               >
                 I Have Paid, Continue
                 <ArrowRight size={19} />
@@ -168,8 +186,8 @@ function PaymentCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white">
+    <div className="rounded-[26px] border border-cyan-100 bg-white p-5 shadow-sm">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 text-white">
         <Icon size={25} />
       </div>
 
@@ -209,7 +227,7 @@ function SummaryLine({
 function CheckItem({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-3 rounded-2xl bg-white px-4 py-3 text-sm text-slate-700">
-      <ShieldCheck size={18} className="mt-0.5 shrink-0 text-emerald-600" />
+      <ShieldCheck size={18} className="mt-0.5 shrink-0 text-cyan-600" />
       <p className="font-semibold">{text}</p>
     </div>
   );

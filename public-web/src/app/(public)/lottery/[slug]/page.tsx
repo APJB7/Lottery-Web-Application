@@ -30,7 +30,6 @@ export default async function LotteryPage({
   if (!item) return notFound();
 
   const isClosed = item.status === "CLOSED";
-
   const drawDate = item.drawDate
     ? new Date(item.drawDate).toLocaleString()
     : "To be announced";
@@ -38,22 +37,21 @@ export default async function LotteryPage({
   return (
     <PageShell>
       <div className="mx-auto max-w-6xl pb-24 md:pb-0">
-        <section className="overflow-hidden rounded-[34px] border border-slate-200 bg-white p-5 shadow-[0_24px_90px_rgba(15,23,42,0.08)] md:p-8">
+        <section className="overflow-hidden rounded-[36px] border border-cyan-100 bg-white/90 p-5 shadow-[0_24px_90px_rgba(6,182,212,0.10)] backdrop-blur-xl md:p-8">
           <div className="grid gap-6 lg:grid-cols-[1fr,0.9fr]">
             <div>
               <div className="flex flex-wrap gap-2">
                 <span
-                  className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-black uppercase tracking-wide ${
-                    isClosed
-                      ? "bg-rose-100 text-rose-700"
-                      : "bg-emerald-100 text-emerald-700"
-                  }`}
+                  className={`inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-black uppercase tracking-wide ${isClosed
+                    ? "bg-slate-100 text-slate-600"
+                    : "bg-cyan-50 text-cyan-700"
+                    }`}
                 >
                   {isClosed ? <Trophy size={15} /> : <ShieldCheck size={15} />}
                   {isClosed ? "Winner Drawn" : "Live Now"}
                 </span>
 
-                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-cyan-100 px-4 py-2 text-xs font-black uppercase tracking-wide text-cyan-700">
+                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-cyan-50 px-4 py-2 text-xs font-black uppercase tracking-wide text-cyan-700">
                   <Ticket size={15} />
                   Rs {item.ticketPrice}
                 </span>
@@ -68,7 +66,7 @@ export default async function LotteryPage({
               </p>
 
               {isClosed && item.winnerName && (
-                <div className="mt-6 rounded-[26px] border border-amber-200 bg-amber-50 p-5 text-amber-900">
+                <div className="mt-6 rounded-[26px] border border-cyan-100 bg-cyan-50 p-5 text-cyan-900">
                   <p className="flex items-center gap-2 text-sm font-black uppercase tracking-wide">
                     <Trophy size={18} />
                     Winner Announcement
@@ -101,8 +99,8 @@ export default async function LotteryPage({
               </div>
 
               {!isClosed && (
-                <div className="mt-6 rounded-[26px] border border-orange-100 bg-orange-50 p-5">
-                  <p className="text-sm font-bold uppercase tracking-wide text-orange-700">
+                <div className="mt-6 rounded-[28px] border border-cyan-100 bg-cyan-50/70 p-5">
+                  <p className="text-sm font-bold uppercase tracking-wide text-cyan-700">
                     Ready to join?
                   </p>
                   <h2 className="mt-1 text-2xl font-black text-slate-950">
@@ -115,7 +113,7 @@ export default async function LotteryPage({
 
                   <Link
                     href={`/register/${item.slug}`}
-                    className="mt-5 hidden w-fit items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-8 py-4 text-base font-black text-white shadow-xl shadow-orange-500/25 transition hover:-translate-y-1 hover:scale-105 md:inline-flex"
+                    className="mt-5 hidden w-fit items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-8 py-4 text-base font-black text-white shadow-xl shadow-cyan-500/25 transition hover:-translate-y-1 hover:scale-105 md:inline-flex"
                   >
                     Participate Now
                     <ArrowRight size={19} />
@@ -124,9 +122,9 @@ export default async function LotteryPage({
               )}
             </div>
 
-            <div className="relative flex min-h-[260px] items-center justify-center overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-950 via-emerald-950 to-cyan-950 p-6 md:min-h-[420px]">
-              <div className="absolute h-72 w-72 animate-soft-pulse rounded-full bg-emerald-400/20 blur-3xl" />
-              <div className="absolute -bottom-20 -right-20 h-72 w-72 animate-float rounded-full bg-cyan-400/20 blur-3xl" />
+            <div className="relative flex min-h-[260px] items-center justify-center overflow-hidden rounded-[32px] bg-gradient-to-br from-cyan-50 via-white to-emerald-50 p-6 md:min-h-[420px]">
+              <div className="absolute h-72 w-72 animate-soft-pulse rounded-full bg-cyan-300/25 blur-3xl" />
+              <div className="absolute -bottom-20 -right-20 h-72 w-72 animate-float rounded-full bg-emerald-300/25 blur-3xl" />
 
               <img
                 src={item.imageUrl}
@@ -137,7 +135,7 @@ export default async function LotteryPage({
           </div>
         </section>
 
-        <section className="mt-6 rounded-[34px] border border-slate-200 bg-white p-5 shadow-[0_18px_70px_rgba(15,23,42,0.07)] md:p-8">
+        <section className="mt-6 rounded-[36px] border border-cyan-100 bg-white/90 p-5 shadow-[0_18px_70px_rgba(6,182,212,0.08)] backdrop-blur-xl md:p-8">
           <div className="mb-5">
             <p className="text-sm font-black uppercase tracking-[0.25em] text-cyan-700">
               Process
@@ -146,52 +144,27 @@ export default async function LotteryPage({
               How It Works
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              The steps are simple, but proof upload is required before your
-              entry can be approved.
+              Proof upload is required before your entry can be approved.
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <StepCard
-              number="1"
-              icon={UserRound}
-              title="Register"
-              text="Fill in your details."
-            />
-            <StepCard
-              number="2"
-              icon={CreditCard}
-              title="Pay"
-              text="Use Juice or bank transfer."
-            />
-            <StepCard
-              number="3"
-              icon={Hash}
-              title="Add Reference"
-              text="Include your unique reference."
-            />
-            <StepCard
-              number="4"
-              icon={UploadCloud}
-              title="Upload Proof"
-              text="Upload your payment receipt."
-            />
-            <StepCard
-              number="5"
-              icon={ShieldCheck}
-              title="Confirmation"
-              text="Admin verifies your entry."
-            />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+            <StepCard number="1" icon={UserRound} title="Register" text="Fill in your details." />
+            <StepCard number="2" icon={CreditCard} title="Pay" text="Use Juice or bank transfer." />
+            <StepCard number="3" icon={Hash} title="Add Reference" text="Include your unique reference." />
+            <StepCard number="4" icon={UploadCloud} title="Upload Proof" text="Upload your payment receipt." />
+            <StepCard number="5" icon={ShieldCheck} title="Confirmation Email" text="After admin approval, you receive a confirmation email." />
+            <StepCard number="6" icon={Trophy} title="Lottery Draw" text="The draw is completed and the winner is announced." />
           </div>
 
-          <div className="mt-5 rounded-[22px] border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
+          <div className="mt-5 rounded-[22px] border border-cyan-100 bg-cyan-50 p-4 text-sm leading-6 text-cyan-900">
             Your information is used only for registration, payment
             verification, and lottery participation. Payments are final and
             non-refundable once submitted.
           </div>
         </section>
 
-        <section className="mt-6 rounded-[30px] border border-amber-200 bg-amber-50 p-5 text-amber-900">
+        <section className="mt-6 rounded-[30px] border border-cyan-100 bg-white/90 p-5 text-cyan-900 shadow-sm">
           <p className="flex items-center gap-2 font-black">
             <AlertTriangle size={20} />
             Important Notice
@@ -204,10 +177,10 @@ export default async function LotteryPage({
         </section>
 
         {!isClosed && (
-          <div className="fixed inset-x-0 bottom-0 z-50 border-t border-orange-100 bg-white/95 p-4 shadow-[0_-10px_35px_rgba(15,23,42,0.12)] backdrop-blur md:hidden">
+          <div className="fixed inset-x-0 bottom-0 z-50 border-t border-cyan-100 bg-white/95 p-4 shadow-[0_-10px_35px_rgba(15,23,42,0.12)] backdrop-blur md:hidden">
             <Link
               href={`/register/${item.slug}`}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-6 py-4 text-base font-black text-white shadow-lg shadow-orange-500/30"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-6 py-4 text-base font-black text-white shadow-lg shadow-cyan-500/30"
             >
               Participate Now
               <ArrowRight size={19} />
@@ -229,8 +202,8 @@ function InfoCard({
   value: string;
 }) {
   return (
-    <div className="rounded-[22px] border border-slate-200 bg-slate-50 p-4">
-      <div className="flex items-center gap-2 text-slate-500">
+    <div className="rounded-[22px] border border-cyan-100 bg-cyan-50/50 p-4">
+      <div className="flex items-center gap-2 text-cyan-700">
         <Icon size={17} />
         <p className="text-xs font-bold uppercase tracking-wide">{label}</p>
       </div>
@@ -251,12 +224,10 @@ function StepCard({
   text: string;
 }) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 text-center transition hover:-translate-y-1 hover:bg-white hover:shadow-lg">
-      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-100 text-sm font-black text-emerald-700">
-        {number}
-      </div>
+    <div className="rounded-[24px] border border-cyan-100 bg-cyan-50/40 p-4 text-center transition hover:-translate-y-1 hover:bg-white hover:shadow-lg">
+      <p className="text-sm font-black text-cyan-700">{number}</p>
 
-      <div className="mx-auto mt-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-lg shadow-cyan-500/20">
+      <div className="mx-auto mt-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 text-white shadow-lg shadow-cyan-500/20">
         <Icon size={24} strokeWidth={2.5} />
       </div>
 
