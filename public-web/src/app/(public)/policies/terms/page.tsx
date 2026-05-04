@@ -1,53 +1,69 @@
 import PageShell from "@/components/PageShell";
-import { FileText, ShieldCheck, AlertTriangle } from "lucide-react";
+import {
+  FileText,
+  Hash,
+  ShieldCheck,
+  UploadCloud,
+  CreditCard,
+  Trophy,
+} from "lucide-react";
 
 export default function TermsPage() {
   return (
     <PageShell>
-      <div className="mx-auto max-w-4xl">
-        <section className="overflow-hidden rounded-[36px] border border-slate-200 bg-white shadow-xl">
-          <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 p-8 text-white">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
-              <FileText size={30} />
-            </div>
-            <h1 className="mt-5 text-4xl font-black">Terms & Conditions</h1>
-            <p className="mt-2 text-white/85">
-              Please read these terms before participating in The Jackpot.
-            </p>
-          </div>
+      <div className="mx-auto max-w-md px-4 md:max-w-3xl">
+        <section className="rounded-[28px] border border-teal-100 bg-white p-5 shadow-sm">
+          <p className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-teal-700">
+            <FileText size={14} />
+            Terms
+          </p>
 
-          <div className="grid gap-5 p-8">
-            <PolicyCard
-              icon={ShieldCheck}
-              title="Participation"
-              text="By registering, you agree to provide accurate details and follow the payment and proof upload process."
-            />
+          <h1 className="mt-4 text-2xl font-semibold text-slate-800">
+            Terms & Conditions
+          </h1>
 
-            <PolicyCard
-              icon={FileText}
-              title="Payment Reference"
-              text="You must include your generated reference number when making payment so your entry can be verified."
-            />
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Please read these terms before participating in The Jackpot.
+          </p>
+        </section>
 
-            <PolicyCard
-              icon={AlertTriangle}
-              title="No Refund Policy"
-              text="All payments are final and non-refundable once submitted."
-            />
+        <section className="mt-5 grid gap-3">
+          <TermCard
+            icon={ShieldCheck}
+            title="Participation"
+            text="By registering, you agree to provide accurate details and follow the payment and proof upload process."
+          />
 
-            <PolicyCard
-              icon={ShieldCheck}
-              title="Admin Verification"
-              text="Entries are only confirmed after proof of payment is reviewed and approved by the administrator."
-            />
-          </div>
+          <TermCard
+            icon={Hash}
+            title="Payment Reference"
+            text="You must include your generated reference number when making payment so your entry can be verified."
+          />
+
+          <TermCard
+            icon={UploadCloud}
+            title="Proof Upload"
+            text="Your entry will remain pending until payment proof is uploaded and checked by the admin."
+          />
+
+          <TermCard
+            icon={CreditCard}
+            title="Payments"
+            text="Payments are final and non-refundable once submitted."
+          />
+
+          <TermCard
+            icon={Trophy}
+            title="Lottery Draw"
+            text="Approved entries are included in the draw. The winner will be selected and announced after the draw."
+          />
         </section>
       </div>
     </PageShell>
   );
 }
 
-function PolicyCard({
+function TermCard({
   icon: Icon,
   title,
   text,
@@ -57,13 +73,14 @@ function PolicyCard({
   text: string;
 }) {
   return (
-    <div className="flex gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-5">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-        <Icon size={24} />
+    <div className="flex gap-4 rounded-[24px] border border-teal-100 bg-white p-4 shadow-sm">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-teal-700">
+        <Icon size={21} />
       </div>
+
       <div>
-        <h2 className="font-black text-slate-950">{title}</h2>
-        <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
+        <h2 className="text-base font-semibold text-slate-800">{title}</h2>
+        <p className="mt-1 text-sm leading-6 text-slate-500">{text}</p>
       </div>
     </div>
   );
