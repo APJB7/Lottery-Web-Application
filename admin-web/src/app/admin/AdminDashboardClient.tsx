@@ -301,7 +301,7 @@ export default function AdminDashboardClient() {
             />
           </div>
 
-          <section className="mt-6 grid gap-4 md:grid-cols-3">
+          <section className="mt-6 grid grid-cols-3 gap-3">
             <TabCard
               active={activeSection === "PENDING"}
               icon={Clock}
@@ -368,9 +368,9 @@ export default function AdminDashboardClient() {
             entries.
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
+          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
             <OverviewStat icon={Ticket} label="Lotteries" value={dashboardStats.lotteries} />
-            <OverviewStat icon={Users} label="Total Entries" value={dashboardStats.total} />
+            <OverviewStat icon={Users} label="Entries" value={dashboardStats.total} />
             <OverviewStat icon={Clock} label="Pending" value={dashboardStats.pending} />
             <OverviewStat icon={CheckCircle2} label="Approved" value={dashboardStats.approved} />
           </div>
@@ -471,9 +471,9 @@ function OverviewStat({
   value: number;
 }) {
   return (
-    <div className="rounded-3xl border border-cyan-100 bg-cyan-50/50 p-5">
-      <Icon size={24} className="text-cyan-700" />
-      <p className="mt-3 text-sm font-bold text-slate-500">{label}</p>
+    <div className="rounded-[22px] border border-cyan-100 bg-cyan-50/50 p-4">
+      <Icon size={21} className="text-cyan-700" />
+      <p className="mt-2 text-xs font-bold text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
     </div>
   );
@@ -526,15 +526,14 @@ function TabCard({
   return (
     <button
       onClick={onClick}
-      className={`rounded-[28px] border p-5 text-left shadow-sm transition ${
-        active
-          ? activeStyles[color]
-          : "border-slate-200 bg-white text-slate-600 hover:border-cyan-100"
-      }`}
+      className={`rounded-[22px] border p-3 text-left shadow-sm transition ${active
+        ? activeStyles[color]
+        : "border-slate-200 bg-white text-slate-600"
+        }`}
     >
-      <Icon size={24} />
-      <p className="mt-3 text-sm font-bold">{label}</p>
-      <p className="mt-1 text-3xl font-black">{count}</p>
+      <Icon size={20} />
+      <p className="mt-2 text-xs font-bold">{label}</p>
+      <p className="mt-1 text-2xl font-black">{count}</p>
     </button>
   );
 }
