@@ -3,22 +3,24 @@
 import { useEffect, useMemo, useState } from "react";
 import PageShell from "@/components/PageShell";
 import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
   Crown,
-  Search,
-  Trash2,
-  Trophy,
-  RotateCcw,
-  Mail,
-  Phone,
-  MapPin,
   FileText,
   ImageIcon,
-  CheckCircle2,
-  XCircle,
-  Clock,
+  Mail,
+  MapPin,
+  Phone,
+  RotateCcw,
+  Search,
   ShieldCheck,
   Ticket,
+  Trash2,
+  Trophy,
   UserRound,
+  Users,
+  XCircle,
 } from "lucide-react";
 
 type Entry = {
@@ -55,19 +57,20 @@ function prettifyStatus(status: string) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function statusStyle(status: string) {
-  if (status === "APPROVED") return "bg-emerald-100 text-emerald-700";
-  if (status === "REJECTED") return "bg-rose-100 text-rose-700";
-  if (status === "PENDING_PAYMENT") return "bg-amber-100 text-amber-700";
-  if (status === "PENDING_REVIEW") return "bg-cyan-100 text-cyan-700";
-  if (status === "AUTO_VERIFIED") return "bg-teal-100 text-teal-700";
-  return "bg-slate-100 text-slate-700";
+function isPending(status: string) {
+  return status !== "APPROVED" && status !== "REJECTED";
 }
 
 export default function AdminDashboardClient() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedLotteryId, setSelectedLotteryId] = useState<string | null>(
+    null
+  );
+  const [activeSection, setActiveSection] = useState<
+    "PENDING" | "APPROVED" | "REJECTED"
+  >("PENDING");
 
   async function fetchEntries() {
     setLoading(true);
@@ -76,6 +79,7 @@ export default function AdminDashboardClient() {
       const res = await fetch(`/api/admin/entries?ts=${Date.now()}`, {
         cache: "no-store",
       });
+
       const data = await res.json();
       setEntries(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -90,7 +94,7 @@ export default function AdminDashboardClient() {
     fetchEntries();
   }, []);
 
-  const grouped = useMemo(() => {
+  const groupedLotteries = useMemo(() => {
     const map: Record<string, Entry[]> = {};
 
     entries.forEach((entry) => {
@@ -102,16 +106,22 @@ export default function AdminDashboardClient() {
     return Object.values(map);
   }, [entries]);
 
-  const stats = useMemo(() => {
+  const selectedGroup = useMemo(() => {
+    if (!selectedLotteryId) return null;
+    return groupedLotteries.find(
+      (group) => group[0].lotteryItem.id === selectedLotteryId
+    );
+  }, [groupedLotteries, selectedLotteryId]);
+
+  const dashboardStats = useMemo(() => {
     return {
+      lotteries: groupedLotteries.length,
       total: entries.length,
-      pending: entries.filter(
-        (e) => e.status === "PENDING_PAYMENT" || e.status === "PENDING_REVIEW"
-      ).length,
+      pending: entries.filter((e) => isPending(e.status)).length,
       approved: entries.filter((e) => e.status === "APPROVED").length,
       rejected: entries.filter((e) => e.status === "REJECTED").length,
     };
-  }, [entries]);
+  }, [entries, groupedLotteries]);
 
   async function drawWinner(lotteryItemId: string) {
     const res = await fetch("/api/admin/draw-winner", {
@@ -167,6 +177,7 @@ export default function AdminDashboardClient() {
       return;
     }
 
+    setSelectedLotteryId(null);
     fetchEntries();
   }
 
@@ -187,267 +198,270 @@ export default function AdminDashboardClient() {
     fetchEntries();
   }
 
-  return (
-    <PageShell>
-      <div className="mx-auto max-w-7xl">
-        <section className="overflow-hidden rounded-[36px] bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-8 text-white shadow-2xl">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div>
-              <p className="text-sm font-black uppercase tracking-[0.3em] text-white/70">
-                Back Office
-              </p>
-              <h1 className="mt-3 text-4xl font-black">Admin Dashboard</h1>
-              <p className="mt-2 text-white/85">
-                Manage lotteries, review payment proofs, approve participants,
-                and draw winners.
-              </p>
-            </div>
+  if (selectedGroup) {
+    const lottery = selectedGroup[0].lotteryItem;
+    const q = search.toLowerCase();
 
-            <div className="rounded-3xl bg-white/15 p-4 backdrop-blur">
-              <Trophy size={34} />
+    const filtered = selectedGroup.filter((entry) => {
+      const matchesSearch =
+        entry.applicantFullName.toLowerCase().includes(q) ||
+        entry.applicantEmail.toLowerCase().includes(q) ||
+        entry.applicantPhone.toLowerCase().includes(q) ||
+        entry.referenceCode.toLowerCase().includes(q);
+
+      if (!matchesSearch) return false;
+
+      if (activeSection === "PENDING") return isPending(entry.status);
+      if (activeSection === "APPROVED") return entry.status === "APPROVED";
+      return entry.status === "REJECTED";
+    });
+
+    const pendingCount = selectedGroup.filter((e) => isPending(e.status)).length;
+    const approvedCount = selectedGroup.filter(
+      (e) => e.status === "APPROVED"
+    ).length;
+    const rejectedCount = selectedGroup.filter(
+      (e) => e.status === "REJECTED"
+    ).length;
+
+    return (
+      <PageShell>
+        <div className="mx-auto max-w-7xl px-4 py-6">
+          <button
+            onClick={() => {
+              setSelectedLotteryId(null);
+              setSearch("");
+            }}
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-white px-4 py-2 text-sm font-bold text-cyan-700 shadow-sm hover:bg-cyan-50"
+          >
+            <ArrowLeft size={17} />
+            Back to lottery cards
+          </button>
+
+          <section className="rounded-[34px] border border-cyan-100 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.06)]">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-cyan-700">
+                  Lottery Details
+                </p>
+
+                <h1 className="mt-2 text-3xl font-black text-slate-900">
+                  {lottery.title}
+                </h1>
+
+                <p className="mt-2 text-sm text-slate-500">
+                  Ticket price: Rs {lottery.ticketPrice} · Receiver:{" "}
+                  {lottery.receiverPhone}
+                </p>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Winner:{" "}
+                  <span className="font-bold text-slate-800">
+                    {lottery.winnerName || "Not drawn yet"}
+                  </span>
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => drawWinner(lottery.id)}
+                  disabled={!!lottery.winnerEntryId}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-500 px-5 py-3 text-sm font-black text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Crown size={17} />
+                  {lottery.winnerEntryId ? "Winner Drawn" : "Draw Winner"}
+                </button>
+
+                <button
+                  onClick={() => resetWinner(lottery.id)}
+                  className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-5 py-3 text-sm font-black text-cyan-700"
+                >
+                  <RotateCcw size={17} />
+                  Reset Winner
+                </button>
+
+                <button
+                  onClick={() => deleteLottery(lottery.id)}
+                  className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-3 text-sm font-black text-white shadow-lg"
+                >
+                  <Trash2 size={17} />
+                  Delete
+                </button>
+              </div>
             </div>
+          </section>
+
+          <div className="mt-6 flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <Search className="text-cyan-600" size={21} />
+            <input
+              value={search}
+              placeholder="Search participant by name, email, phone, or reference..."
+              className="w-full bg-transparent text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400"
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          <div className="mt-7 grid gap-4 md:grid-cols-4">
-            <StatCard icon={Ticket} label="Total Entries" value={stats.total} />
-            <StatCard icon={Clock} label="Pending" value={stats.pending} />
-            <StatCard icon={CheckCircle2} label="Approved" value={stats.approved} />
-            <StatCard icon={XCircle} label="Rejected" value={stats.rejected} />
+          <section className="mt-6 grid gap-4 md:grid-cols-3">
+            <TabCard
+              active={activeSection === "PENDING"}
+              icon={Clock}
+              label="Pending"
+              count={pendingCount}
+              onClick={() => setActiveSection("PENDING")}
+              color="cyan"
+            />
+
+            <TabCard
+              active={activeSection === "APPROVED"}
+              icon={CheckCircle2}
+              label="Approved"
+              count={approvedCount}
+              onClick={() => setActiveSection("APPROVED")}
+              color="emerald"
+            />
+
+            <TabCard
+              active={activeSection === "REJECTED"}
+              icon={XCircle}
+              label="Rejected"
+              count={rejectedCount}
+              onClick={() => setActiveSection("REJECTED")}
+              color="rose"
+            />
+          </section>
+
+          <section className="mt-6 grid gap-4">
+            {filtered.length === 0 ? (
+              <div className="rounded-[28px] border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                No entries found in this section.
+              </div>
+            ) : (
+              filtered.map((entry) => (
+                <EntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onApprove={() => updateStatus(entry.id, "APPROVED")}
+                  onReject={() => updateStatus(entry.id, "REJECTED")}
+                />
+              ))
+            )}
+          </section>
+        </div>
+      </PageShell>
+    );
+  }
+
+  return (
+    <PageShell>
+      <div className="mx-auto max-w-7xl px-4 py-6">
+        <section className="rounded-[34px] border border-cyan-100 bg-white p-6 shadow-[0_18px_55px_rgba(15,23,42,0.06)]">
+          <p className="text-sm font-bold uppercase tracking-wide text-cyan-700">
+            Back Office
+          </p>
+
+          <h1 className="mt-2 text-3xl font-black text-slate-900">
+            Lottery Management
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Select a lottery item to review pending, approved, and rejected
+            entries.
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <OverviewStat icon={Ticket} label="Lotteries" value={dashboardStats.lotteries} />
+            <OverviewStat icon={Users} label="Total Entries" value={dashboardStats.total} />
+            <OverviewStat icon={Clock} label="Pending" value={dashboardStats.pending} />
+            <OverviewStat icon={CheckCircle2} label="Approved" value={dashboardStats.approved} />
           </div>
         </section>
 
-        <div className="mt-8 flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-          <Search className="text-cyan-600" size={22} />
-          <input
-            value={search}
-            placeholder="Search by name, email, phone, or reference..."
-            className="w-full bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
         {loading ? (
           <div className="mt-8 rounded-3xl bg-white p-8 text-slate-500 shadow-sm">
-            Loading entries...
+            Loading lottery items...
           </div>
-        ) : grouped.length === 0 ? (
+        ) : groupedLotteries.length === 0 ? (
           <div className="mt-8 rounded-3xl bg-white p-8 text-center text-slate-500 shadow-sm">
             No lottery entries found.
           </div>
         ) : (
-          <div className="mt-8 grid gap-10">
-            {grouped.map((group) => {
+          <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {groupedLotteries.map((group) => {
               const lottery = group[0].lotteryItem;
-              const q = search.toLowerCase();
 
-              const filtered = group.filter((entry) => {
-                return (
-                  entry.applicantFullName.toLowerCase().includes(q) ||
-                  entry.applicantEmail.toLowerCase().includes(q) ||
-                  entry.applicantPhone.toLowerCase().includes(q) ||
-                  entry.referenceCode.toLowerCase().includes(q)
-                );
-              });
+              const pending = group.filter((e) => isPending(e.status)).length;
+              const approved = group.filter(
+                (e) => e.status === "APPROVED"
+              ).length;
+              const rejected = group.filter(
+                (e) => e.status === "REJECTED"
+              ).length;
 
               return (
-                <section
+                <button
                   key={lottery.id}
-                  className="overflow-hidden rounded-[34px] border border-slate-200 bg-white shadow-xl"
+                  onClick={() => {
+                    setSelectedLotteryId(lottery.id);
+                    setActiveSection("PENDING");
+                    setSearch("");
+                  }}
+                  className="group rounded-[34px] border border-cyan-100 bg-white p-6 text-left shadow-[0_18px_55px_rgba(15,23,42,0.07)] transition hover:-translate-y-1 hover:shadow-[0_28px_80px_rgba(6,182,212,0.14)]"
                 >
-                  <div className="bg-gradient-to-r from-slate-950 via-emerald-950 to-cyan-950 p-6 text-white">
-                    <div className="flex flex-wrap items-start justify-between gap-5">
-                      <div>
-                        <p className="text-sm font-bold uppercase tracking-[0.25em] text-cyan-200">
-                          Lottery Item
-                        </p>
-                        <h2 className="mt-2 text-3xl font-black">
-                          {lottery.title}
-                        </h2>
-                        <p className="mt-1 text-sm text-white/75">
-                          Status: {prettifyStatus(lottery.status)}
-                        </p>
-                        <p className="mt-1 text-sm text-white/75">
-                          Winner:{" "}
-                          <span className="font-bold text-white">
-                            {lottery.winnerName || "Not drawn yet"}
-                          </span>
-                        </p>
-                      </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700">
+                        <Ticket size={14} />
+                        Rs {lottery.ticketPrice}
+                      </p>
 
-                      <div className="flex flex-wrap gap-3">
-                        <button
-                          onClick={() => drawWinner(lottery.id)}
-                          disabled={!!lottery.winnerEntryId}
-                          className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          <Crown size={18} />
-                          {lottery.winnerEntryId ? "Winner Drawn" : "Draw Winner"}
-                        </button>
+                      <h2 className="mt-4 text-2xl font-black text-slate-900">
+                        {lottery.title}
+                      </h2>
 
-                        <button
-                          onClick={() => resetWinner(lottery.id)}
-                          className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-black text-white transition hover:bg-white/20"
-                        >
-                          <RotateCcw size={18} />
-                          Reset Winner
-                        </button>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Receiver: {lottery.receiverPhone}
+                      </p>
+                    </div>
 
-                        <button
-                          onClick={() => deleteLottery(lottery.id)}
-                          className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-3 text-sm font-black text-white transition hover:bg-rose-600"
-                        >
-                          <Trash2 size={18} />
-                          Delete
-                        </button>
-                      </div>
+                    <div className="rounded-2xl bg-cyan-50 p-3 text-cyan-700">
+                      <Trophy size={22} />
                     </div>
                   </div>
 
-                  <div className="grid gap-5 p-6">
-                    {filtered.length === 0 ? (
-                      <div className="rounded-3xl bg-slate-50 p-6 text-center text-slate-500">
-                        No entries match your search.
-                      </div>
-                    ) : (
-                      filtered.map((entry) => {
-                        const isPdf =
-                          entry.proofImageUrl?.toLowerCase().includes(".pdf") ??
-                          false;
+                  {lottery.winnerName ? (
+                    <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-amber-900">
+                      <p className="flex items-center gap-2 text-sm font-black">
+                        <Trophy size={17} />
+                        Winner Drawn
+                      </p>
+                      <p className="mt-1 text-sm">{lottery.winnerName}</p>
+                    </div>
+                  ) : (
+                    <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-500">
+                      Winner not drawn yet.
+                    </div>
+                  )}
 
-                        return (
-                          <article
-                            key={entry.id}
-                            className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-1 hover:bg-white hover:shadow-lg"
-                          >
-                            <div className="flex flex-wrap items-start justify-between gap-4">
-                              <div className="flex gap-4">
-                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white shadow-lg">
-                                  <UserRound size={26} />
-                                </div>
-
-                                <div>
-                                  <h3 className="text-xl font-black text-slate-950">
-                                    {entry.applicantFullName}
-                                  </h3>
-                                  <p className="mt-1 text-sm font-bold text-cyan-700">
-                                    {entry.referenceCode}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <span
-                                className={`rounded-full px-4 py-2 text-sm font-black ${statusStyle(
-                                  entry.status
-                                )}`}
-                              >
-                                {prettifyStatus(entry.status)}
-                              </span>
-                            </div>
-
-                            <div className="mt-5 grid gap-3 md:grid-cols-3">
-                              <InfoLine icon={Mail} text={entry.applicantEmail} />
-                              <InfoLine icon={Phone} text={entry.applicantPhone} />
-                              <InfoLine
-                                icon={MapPin}
-                                text={entry.applicantNationality}
-                              />
-                            </div>
-
-                            <div className="mt-5 grid gap-3 md:grid-cols-4">
-                              <MiniBox
-                                label="Ticket Price"
-                                value={`Rs ${lottery.ticketPrice}`}
-                              />
-                              <MiniBox
-                                label="Receiver"
-                                value={lottery.receiverPhone}
-                              />
-                              <MiniBox
-                                label="Proof Type"
-                                value={
-                                  entry.proofImageUrl
-                                    ? isPdf
-                                      ? "PDF"
-                                      : "Image"
-                                    : "Missing"
-                                }
-                              />
-                              <MiniBox
-                                label="Score"
-                                value={`${entry.verificationScore ?? 0}`}
-                              />
-                            </div>
-
-                            <div className="mt-5 flex flex-wrap gap-2">
-                              {entry.proofImageUrl ? (
-                                <a
-                                  href={`/api/admin/proof/${entry.id}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800"
-                                >
-                                  {isPdf ? (
-                                    <FileText size={18} />
-                                  ) : (
-                                    <ImageIcon size={18} />
-                                  )}
-                                  {isPdf ? "View PDF Proof" : "View Image Proof"}
-                                </a>
-                              ) : (
-                                <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-black text-amber-800">
-                                  <Clock size={18} />
-                                  No proof uploaded
-                                </span>
-                              )}
-
-                              {entry.status !== "APPROVED" &&
-                                entry.status !== "REJECTED" && (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        updateStatus(entry.id, "APPROVED")
-                                      }
-                                      className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-black text-white hover:bg-emerald-600"
-                                    >
-                                      <CheckCircle2 size={18} />
-                                      Approve
-                                    </button>
-
-                                    <button
-                                      onClick={() =>
-                                        updateStatus(entry.id, "REJECTED")
-                                      }
-                                      className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-4 py-2 text-sm font-black text-white hover:bg-rose-600"
-                                    >
-                                      <XCircle size={18} />
-                                      Reject
-                                    </button>
-                                  </>
-                                )}
-                            </div>
-
-                            {entry.verificationNotes && (
-                              <div className="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50 p-4 text-sm text-cyan-900">
-                                <span className="font-black">Notes:</span>{" "}
-                                {entry.verificationNotes}
-                              </div>
-                            )}
-                          </article>
-                        );
-                      })
-                    )}
+                  <div className="mt-5 grid grid-cols-3 gap-3">
+                    <MiniStat label="Pending" value={pending} color="cyan" />
+                    <MiniStat label="Approved" value={approved} color="emerald" />
+                    <MiniStat label="Rejected" value={rejected} color="rose" />
                   </div>
-                </section>
+
+                  <div className="mt-5 rounded-full bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 px-5 py-3 text-center text-sm font-black text-white transition group-hover:scale-[1.02]">
+                    Open Lottery Details
+                  </div>
+                </button>
               );
             })}
-          </div>
+          </section>
         )}
       </div>
     </PageShell>
   );
 }
 
-function StatCard({
+function OverviewStat({
   icon: Icon,
   label,
   value,
@@ -457,36 +471,179 @@ function StatCard({
   value: number;
 }) {
   return (
-    <div className="rounded-3xl border border-white/15 bg-white/15 p-5 backdrop-blur">
-      <Icon size={26} />
-      <p className="mt-3 text-sm text-white/75">{label}</p>
-      <p className="mt-1 text-3xl font-black">{value}</p>
+    <div className="rounded-3xl border border-cyan-100 bg-cyan-50/50 p-5">
+      <Icon size={24} className="text-cyan-700" />
+      <p className="mt-3 text-sm font-bold text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-black text-slate-900">{value}</p>
     </div>
   );
 }
 
-function InfoLine({
-  icon: Icon,
-  text,
+function MiniStat({
+  label,
+  value,
+  color,
 }: {
-  icon: React.ElementType;
-  text: string;
+  label: string;
+  value: number;
+  color: "cyan" | "emerald" | "rose";
 }) {
+  const styles = {
+    cyan: "bg-cyan-50 text-cyan-700",
+    emerald: "bg-emerald-50 text-emerald-700",
+    rose: "bg-rose-50 text-rose-700",
+  };
+
   return (
-    <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-700">
-      <Icon size={17} className="text-cyan-600" />
-      <span className="truncate">{text}</span>
+    <div className={`rounded-2xl p-3 text-center ${styles[color]}`}>
+      <p className="text-xs font-bold">{label}</p>
+      <p className="text-xl font-black">{value}</p>
     </div>
   );
 }
 
-function MiniBox({ label, value }: { label: string; value: string }) {
+function TabCard({
+  active,
+  icon: Icon,
+  label,
+  count,
+  onClick,
+  color,
+}: {
+  active: boolean;
+  icon: React.ElementType;
+  label: string;
+  count: number;
+  onClick: () => void;
+  color: "cyan" | "emerald" | "rose";
+}) {
+  const activeStyles = {
+    cyan: "border-cyan-200 bg-cyan-50 text-cyan-800",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    rose: "border-rose-200 bg-rose-50 text-rose-800",
+  };
+
   return (
-    <div className="rounded-2xl bg-white px-4 py-3">
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-        {label}
-      </p>
-      <p className="mt-1 font-black text-slate-950">{value}</p>
-    </div>
+    <button
+      onClick={onClick}
+      className={`rounded-[28px] border p-5 text-left shadow-sm transition ${
+        active
+          ? activeStyles[color]
+          : "border-slate-200 bg-white text-slate-600 hover:border-cyan-100"
+      }`}
+    >
+      <Icon size={24} />
+      <p className="mt-3 text-sm font-bold">{label}</p>
+      <p className="mt-1 text-3xl font-black">{count}</p>
+    </button>
+  );
+}
+
+function EntryCard({
+  entry,
+  onApprove,
+  onReject,
+}: {
+  entry: Entry;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const isPdf = entry.proofImageUrl?.toLowerCase().includes(".pdf") ?? false;
+
+  return (
+    <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 text-white shadow-lg">
+            <UserRound size={26} />
+          </div>
+
+          <div>
+            <p className="text-lg font-black text-slate-900">
+              {entry.applicantFullName}
+            </p>
+
+            <p className="mt-1 text-sm font-bold text-cyan-700">
+              {entry.referenceCode}
+            </p>
+
+            <div className="mt-3 grid gap-2 text-sm text-slate-600">
+              <p className="flex items-center gap-2">
+                <Mail size={16} className="text-cyan-600" />
+                {entry.applicantEmail}
+              </p>
+
+              <p className="flex items-center gap-2">
+                <Phone size={16} className="text-cyan-600" />
+                {entry.applicantPhone}
+              </p>
+
+              <p className="flex items-center gap-2">
+                <MapPin size={16} className="text-cyan-600" />
+                {entry.applicantNationality}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-slate-50 p-4 text-sm">
+          <p className="font-bold text-slate-500">Status</p>
+          <p className="mt-1 font-black text-slate-800">
+            {prettifyStatus(entry.status)}
+          </p>
+
+          <p className="mt-3 font-bold text-slate-500">Score</p>
+          <p className="mt-1 font-black text-cyan-700">
+            {entry.verificationScore ?? 0}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        {entry.proofImageUrl ? (
+          <a
+            href={`/api/admin/proof/${entry.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-bold text-white"
+          >
+            {isPdf ? <FileText size={16} /> : <ImageIcon size={16} />}
+            {isPdf ? "View PDF Proof" : "View Image Proof"}
+          </a>
+        ) : (
+          <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-bold text-amber-800">
+            <Clock size={16} />
+            No proof uploaded
+          </span>
+        )}
+
+        {entry.status !== "APPROVED" && entry.status !== "REJECTED" && (
+          <>
+            <button
+              onClick={onApprove}
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white"
+            >
+              <ShieldCheck size={16} />
+              Approve
+            </button>
+
+            <button
+              onClick={onReject}
+              className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-4 py-2 text-sm font-bold text-white"
+            >
+              <XCircle size={16} />
+              Reject
+            </button>
+          </>
+        )}
+      </div>
+
+      {entry.verificationNotes && (
+        <div className="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50 p-4 text-sm text-cyan-900">
+          <span className="font-black">Notes:</span>{" "}
+          {entry.verificationNotes}
+        </div>
+      )}
+    </article>
   );
 }
