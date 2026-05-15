@@ -4,14 +4,14 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
 });
 
-export async function uploadProofToCloudinary(filePath: string, referenceCode: string) {
+export async function uploadLotteryImage(filePath: string, slug: string) {
   const result = await cloudinary.uploader.upload(filePath, {
-    folder: "luckyflow/payment-proofs",
-    public_id: `${Date.now()}-${referenceCode}`,
-    resource_type: "auto",
+    folder: "luckyflow/lottery-items",
+    public_id: slug,
+    resource_type: "image",
+    overwrite: true,
   });
 
   return result.secure_url;
