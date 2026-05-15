@@ -11,13 +11,20 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 border-b border-cyan-100 bg-white/90 backdrop-blur-2xl shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
         <Link href="/admin" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-500 text-xl font-black text-white shadow-lg shadow-cyan-500/25">
-            J
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-cyan-500/20">
+            <img
+              src="/image.png"
+              alt="The Jackpot Logo"
+              className="h-full w-full object-cover"
+            />
           </div>
 
           <div>
             <p className="text-xl font-black tracking-tight text-slate-900">
-              The<span className="text-cyan-600">Jackpot</span>
+              The
+              <span className="bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500 bg-clip-text text-transparent">
+                Jackpot
+              </span>
             </p>
             <p className="text-xs font-medium text-slate-500">
               Admin back office
