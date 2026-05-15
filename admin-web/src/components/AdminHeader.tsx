@@ -35,7 +35,7 @@ export default function Navbar() {
 
         <nav className="hidden items-center gap-2 rounded-full border border-cyan-100 bg-white p-1 shadow-sm md:flex">
           <NavLink href="/admin" icon={LayoutDashboard} label="Dashboard" />
-          <NavLink href="/admin/add-lottery" icon={PlusCircle} label="Add Lottery" />
+          <NavLink href="/admin/lottery/new" icon={PlusCircle} label="Add Lottery" />
         </nav>
       </div>
 
@@ -50,7 +50,7 @@ export default function Navbar() {
             />
 
             <MobileNavLink
-              href="/admin/add-lottery"
+              href="/admin/lottery/new"
               icon={PlusCircle}
               label="Add Lottery"
               onClick={() => setOpen(false)}
