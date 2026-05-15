@@ -50,6 +50,10 @@ type Entry = {
   };
 };
 
+type LotteryItem = Entry["lotteryItem"] & {
+  entries?: Entry[];
+};
+
 function prettifyStatus(status: string) {
   return status
     .replaceAll("_", " ")
@@ -63,6 +67,7 @@ function isPending(status: string) {
 
 export default function AdminDashboardClient() {
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [lotteries, setLotteries] = useState<LotteryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedLotteryId, setSelectedLotteryId] = useState<string | null>(
@@ -76,15 +81,19 @@ export default function AdminDashboardClient() {
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/admin/entries?ts=${Date.now()}`, {
-        cache: "no-store",
-      });
+      const [entriesRes, lotteriesRes] = await Promise.all([
+        fetch(`/api/admin/entries?ts=${Date.now()}`, { cache: "no-store" }),
+        fetch(`/api/admin/lottery/list?ts=${Date.now()}`, { cache: "no-store" }),
+      ]);
 
-      const data = await res.json();
-      setEntries(Array.isArray(data) ? data : []);
+      const entriesData = await entriesRes.json();
+      const lotteriesData = await lotteriesRes.json();
+
+      setEntries(Array.isArray(entriesData) ? entriesData : []);
+      setLotteries(Array.isArray(lotteriesData) ? lotteriesData : []);
     } catch (error) {
       console.error(error);
-      alert("Failed to load entries");
+      alert("Failed to load dashboard");
     } finally {
       setLoading(false);
     }
@@ -95,27 +104,29 @@ export default function AdminDashboardClient() {
   }, []);
 
   const groupedLotteries = useMemo(() => {
-    const map: Record<string, Entry[]> = {};
+    return lotteries.map((lottery) => {
+      const lotteryEntries = entries.filter(
+        (entry) => entry.lotteryItem.id === lottery.id
+      );
 
-    entries.forEach((entry) => {
-      const id = entry.lotteryItem.id;
-      if (!map[id]) map[id] = [];
-      map[id].push(entry);
+      return {
+        lottery,
+        entries: lotteryEntries,
+      };
     });
-
-    return Object.values(map);
-  }, [entries]);
+  }, [lotteries, entries]);
 
   const selectedGroup = useMemo(() => {
     if (!selectedLotteryId) return null;
+
     return groupedLotteries.find(
-      (group) => group[0].lotteryItem.id === selectedLotteryId
+      (group) => group.lottery.id === selectedLotteryId
     );
   }, [groupedLotteries, selectedLotteryId]);
 
   const dashboardStats = useMemo(() => {
     return {
-      lotteries: groupedLotteries.length,
+      lotteries: lotteries.length,
       total: entries.length,
       pending: entries.filter((e) => isPending(e.status)).length,
       approved: entries.filter((e) => e.status === "APPROVED").length,
@@ -199,10 +210,10 @@ export default function AdminDashboardClient() {
   }
 
   if (selectedGroup) {
-    const lottery = selectedGroup[0].lotteryItem;
+    const lottery = selectedGroup.lottery;
     const q = search.toLowerCase();
 
-    const filtered = selectedGroup.filter((entry) => {
+    const filtered = selectedGroup.entries.filter((entry) => {
       const matchesSearch =
         entry.applicantFullName.toLowerCase().includes(q) ||
         entry.applicantEmail.toLowerCase().includes(q) ||
@@ -216,11 +227,11 @@ export default function AdminDashboardClient() {
       return entry.status === "REJECTED";
     });
 
-    const pendingCount = selectedGroup.filter((e) => isPending(e.status)).length;
-    const approvedCount = selectedGroup.filter(
+    const pendingCount = selectedGroup.entries.filter((e) => isPending(e.status)).length;
+    const approvedCount = selectedGroup.entries.filter(
       (e) => e.status === "APPROVED"
     ).length;
-    const rejectedCount = selectedGroup.filter(
+    const rejectedCount = selectedGroup.entries.filter(
       (e) => e.status === "REJECTED"
     ).length;
 
@@ -386,13 +397,14 @@ export default function AdminDashboardClient() {
           </div>
         ) : (
           <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {groupedLotteries.map((group) => {
-              const lottery = group[0].lotteryItem;
+            {groupedLotteries.map(({ lottery, entries: group }) => {
 
               const pending = group.filter((e) => isPending(e.status)).length;
+
               const approved = group.filter(
                 (e) => e.status === "APPROVED"
               ).length;
+
               const rejected = group.filter(
                 (e) => e.status === "REJECTED"
               ).length;
